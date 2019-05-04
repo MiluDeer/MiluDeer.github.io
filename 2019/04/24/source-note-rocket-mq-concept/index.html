@@ -1,0 +1,332 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+  
+    <title>【阅读笔记】rocketmq 概念与架构 （一） | Deer&#39;s blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Deer">
+    
+    <meta name="description" content="1. 概念1.1 namesrv(name server)记录了 broker 集群信息，消息队列的信息以及 key-value 配置，见 RouteInfoManager 和 KVConfigManager。
+可以由多个 namesrv 实例组成集群，但相互独立，没有信息交换。
+1.2 broke">
+    
+    
+    
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/pacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/pacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+</html>
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.svg" alt="Deer&#39;s blog" title="Deer&#39;s blog"></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Deer&#39;s blog">Deer&#39;s blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+					<li>
+					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索">
+						<input type="hidden" name="q" value="site:yoursite.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle"><a href="/archives">归档</a></p>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">五月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">四月 2019</a><span class="archive-list-count">3</span></li></ul>
+  </div>
+
+
+  <div class="rsspart">
+	<a href target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/04/24/source-note-rocket-mq-concept/" title="【阅读笔记】rocketmq 概念与架构 （一）" itemprop="url">【阅读笔记】rocketmq 概念与架构 （一）</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://yoursite.com" title="Deer">Deer</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2019-04-24T13:28:23.000Z" itemprop="datePublished">2019-04-24</time>
+    更新日期:<time datetime="2019-04-27T16:33:50.313Z" itemprop="dateModified">2019-04-28</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<h1 id="1-概念"><a href="#1-概念" class="headerlink" title="1. 概念"></a>1. 概念</h1><h3 id="1-1-namesrv-name-server"><a href="#1-1-namesrv-name-server" class="headerlink" title="1.1 namesrv(name server)"></a>1.1 namesrv(name server)</h3><p>记录了 broker 集群信息，消息队列的信息以及 key-value 配置，见 RouteInfoManager 和 KVConfigManager。</p>
+<p>可以由多个 namesrv 实例组成集群，但相互独立，没有信息交换。</p>
+<h3 id="1-2-broker"><a href="#1-2-broker" class="headerlink" title="1.2 broker"></a>1.2 broker</h3><p>核心组件，负责存储所有的消息相关信息</p>
+<ul>
+<li>支持主从模式</li>
+<li>支持 master 写操作，只有当 master 读压力高于某个点（消息堆积），才会将读压力转给 salver</li>
+<li>主从切换<br>4.5.0 版本之前无法做到主从切换。master 宕机，slaver<br>4.5.0 版本开始支持 master 宕机后可以切换到 slaver（4.5.0版本）</li>
+<li>broker 提供了两种方式刷盘方式<ul>
+<li>同步刷盘：消息投放到 broker 之后，会在<strong>写入文件</strong>之后才返回成功</li>
+<li>异步刷盘：消息投放 broker 成功后即可返回，同时启动另外的线程来存储消息</li>
+</ul>
+</li>
+<li>当发现broker压力较大时，可独立扩展 broker，只需要将 broker 地址注册到 namesrv 中即可</li>
+<li>当其中一台broker机器宕机后，namesrv 不会顷刻间摘除心跳检测（多次无心跳检测才会摘除），而生产者/消费者亦会有轮询的方式，在数次请求无果后，会从可用列表中将该broker剔除掉，并将请求转发到另外的机器上</li>
+</ul>
+<h3 id="1-3-producer"><a href="#1-3-producer" class="headerlink" title="1.3 producer"></a>1.3 producer</h3><p>生产者的作用就是将消息发送到 MQ，一个生产者发送业务应用系统生成的数据给Broker<br>RocketMQ提供多范式发送：同步，异步，一站式（OneWay）</p>
+<h3 id="1-4-producer-group"><a href="#1-4-producer-group" class="headerlink" title="1.4 producer group"></a>1.4 producer group</h3><p>生产者组，是将同样角色生产者的分组在一起。<br>同一生产组的不同生产者实例都会被 broker 告知提交或者回滚事务，以避免事务后源生产者崩溃</p>
+<h3 id="1-5-consumer"><a href="#1-5-consumer" class="headerlink" title="1.5 consumer"></a>1.5 consumer</h3><p>消费消息，从用户应用的角度看，有两种类型的消费者：</p>
+<ul>
+<li>PullConsumer  要客户主动拉取消息</li>
+<li>PushConsumer  推送消息（实际上还是用拉取实现）</li>
+</ul>
+<h3 id="1-6-Message-Model-消息模型"><a href="#1-6-Message-Model-消息模型" class="headerlink" title="1.6 Message Model 消息模型"></a>1.6 Message Model 消息模型</h3><p>有两种</p>
+<ul>
+<li>Clustering：同一消费组中只有一个消费者消费消息</li>
+<li>Broadcasting：消息将发往所有这个 topic 的订阅者，同一消费组中所有消费者都消费消息</li>
+</ul>
+<h3 id="1-7-consumer-group"><a href="#1-7-consumer-group" class="headerlink" title="1.7 consumer group"></a>1.7 consumer group</h3><p>消费组，把同样角色的消费者分组到一起，即消费者组</p>
+<p>如果消息模型是 Clustering ，那么同一消息，同一个 group 下只有一个 consumer 消费，<br>如果是 Broadcasting，同一消息，同一个 group 下所有 consumer 消费。</p>
+<pre><code>例如有一消息 A， 有 4 个 consumer c0~c3， 其中 
+  c0 c1 在 group1，消息模型是 clustering
+  c2 c3 在 group2，消息模型是 broadcasting
+那么消息 A 会由 c0 或 c1 中的一个和c2，c3消费
+</code></pre><h3 id="1-8-message-order"><a href="#1-8-message-order" class="headerlink" title="1.8 message order"></a>1.8 message order</h3><p>当使用DefaultMQPushConsumer时，需要确定消费消息的方式</p>
+<ul>
+<li>orderly：消费者将锁定每个MessageQueue，以确保每个消息按顺序被使用</li>
+<li>concurrently：消费者将同时使用这些消息</li>
+</ul>
+<h3 id="1-9-cluster"><a href="#1-9-cluster" class="headerlink" title="1.9 cluster"></a>1.9 cluster</h3><p>broker 集群，同一组 namesrv 可以注册多组 broker，每组 broker 就是一个 broker cluster。</p>
+<p>cluster 通过 broker 的配置文件配置 brokerClusterName 指定</p>
+<h3 id="1-10-topic"><a href="#1-10-topic" class="headerlink" title="1.10 topic"></a>1.10 topic</h3><p>消息按 Topic 组织，一个 Topic 可以存在于多个 Broker，一个 Topic 有多个 Consume Queue</p>
+<h3 id="1-11-consume-queue："><a href="#1-11-consume-queue：" class="headerlink" title="1.11 consume queue："></a>1.11 consume queue：</h3><p>表示一个逻辑上的消息队列，这个队列一个元素就代表一个消息，一个元素包含了消息在 Commit log中的逻辑位置</p>
+<h3 id="1-12-offset"><a href="#1-12-offset" class="headerlink" title="1.12 offset"></a>1.12 offset</h3><p>说明一个消息在 consume queue 中的下标，由0开始</p>
+<h1 id="2-部署"><a href="#2-部署" class="headerlink" title="2. 部署"></a>2. 部署</h1><p><img src="/2019/04/24/source-note-rocket-mq-concept/rocketmq_部署图.jpg" alt="rocketmq 部署图"></p>
+<p>部署方式有 </p>
+<ul>
+<li>单 master 模式</li>
+<li>多 master 模式</li>
+<li>多 master 多 slave 异步复制模式</li>
+<li>多 master 多 slave 同步双写模式</li>
+</ul>
+<h3 id="单-master"><a href="#单-master" class="headerlink" title="单 master"></a>单 master</h3><p>只有一个 master节点<br>优点：配置简单，方便部署<br>缺点：这种方式风险较大，一旦 broker 重启或者宕机时，会导致整个服务不可用，不建议线上环境使用</p>
+<h3 id="多-master-模式"><a href="#多-master-模式" class="headerlink" title="多 master 模式"></a>多 master 模式</h3><p>一个集群无 slave，全是 master，例如 2 个 master 或者 3 个 master<br>优点：配置简单，单个 master 宕机或重启维护对应用无影响。在磁盘配置为 RAID10 时，即使机器宕机不可恢复情况下，由与 RAID10 磁盘非常可靠，消息也不会丢（异步刷盘丢失少量消息，同步刷盘一条不丢），性能最高。<br>缺点：单台机器宕机期间，这台机器上未被消费的消息在机器恢复之前不可订阅，消息实时性会受到受到影响<br>备注：当使用多 master 无slave 的集群搭建方式时，master 的 brokerRole 配置必须为 ASYNC_MASTER。如果配置为 SYNC_MASTER，则 producer 发送消息时，返回值的 SendStatus 会一直是 SLAVE_NOT_AVAILABLE</p>
+<h3 id="多-master-多-slave模式（异步复制）"><a href="#多-master-多-slave模式（异步复制）" class="headerlink" title="多 master 多 slave模式（异步复制）"></a>多 master 多 slave模式（异步复制）</h3><p>每个 master 配置一个 slave，有多对 master-slave。采用异步复制方式，主备有短暂消息延迟，毫秒级。<br>优点：即使磁盘损坏，消息丢失的非常少，且消息实时性不会受影响，因为 master 宕机后，消费者仍然可以从 slave 消费，此过程对应用透明。不需要人工干预。性能同多 master 模式几乎一样。<br>缺点：Master 宕机，磁盘损坏情况，会丢失少量消息。</p>
+<h3 id="多-master-多-slave模式（同步双写）"><a href="#多-master-多-slave模式（同步双写）" class="headerlink" title="多 master 多 slave模式（同步双写）"></a>多 master 多 slave模式（同步双写）</h3><p>每个 master 配置一个 slave，有多对 master-slave。采用同步双写方式，主备都写成功，向应用返回成功。<br>优点：数据与服务都无单点， master 宕机情况下，消息无延迟，服务可用性与数据可用性都非常高<br>缺点：性能比异步复制模式略低，大约低 10%左右，发送单个消息的 RT 会略高。</p>
+<p>4.5.0 之前主宕机后，备机不能自动切换为主机，4.5.0 开始支持自动切换功能</p>
+<p>异步复制和同步双写的区别是，同步双写在写入消息后，会等待 slave 写完成才返回到应用。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://yoursite.com/2019/04/24/source-note-rocket-mq-concept/" data-title="【阅读笔记】rocketmq 概念与架构 （一） | Deer&#39;s blog" data-tsina class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev">
+ <a href="/2019/04/26/source-note-rocket-mq-remoting/" title="【阅读笔记】rocketmq 远程通信 （二）">
+  <strong>PREVIOUS:</strong><br>
+  <span>
+  【阅读笔记】rocketmq 远程通信 （二）</span>
+</a>
+</div>
+
+
+</nav>
+
+	
+</div>  
+    </div>
+    <footer><div id="footer">
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<div class="social-font clearfix">
+		
+		
+		
+		
+		
+	</div>
+		<p class="copyright">Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/A-limon/pacman" target="_blank" title="Pacman">Pacman</a> © 2019 
+		
+		<a href="http://yoursite.com" target="_blank" title="Deer">Deer</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  
+  // $this.append(html);
+
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+
+
+  </body>
+</html>
+

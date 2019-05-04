@@ -1,0 +1,558 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+  
+    <title>【阅读笔记】rocketmq 远程通信 （二） | Deer&#39;s blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Deer">
+    
+    <meta name="description" content="协议rocketmq-remoting 工程实现 rocketmq 的远程通信，组件间大部分的通信都是通过这个模块实现。
+rocketmq-remoting 使用 netty 实现的，基于 TCP 的应用层协议。协议格式在 RemotingCommand 定义，一个数据包由数据包长度，header ">
+    
+    
+    
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/pacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/pacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+</html>
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.svg" alt="Deer&#39;s blog" title="Deer&#39;s blog"></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Deer&#39;s blog">Deer&#39;s blog</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+					<li>
+					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索">
+						<input type="hidden" name="q" value="site:yoursite.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle"><a href="/archives">归档</a></p>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">五月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">四月 2019</a><span class="archive-list-count">3</span></li></ul>
+  </div>
+
+
+  <div class="rsspart">
+	<a href target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/04/26/source-note-rocket-mq-remoting/" title="【阅读笔记】rocketmq 远程通信 （二）" itemprop="url">【阅读笔记】rocketmq 远程通信 （二）</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://yoursite.com" title="Deer">Deer</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2019-04-26T14:12:31.000Z" itemprop="datePublished">2019-04-26</time>
+    更新日期:<time datetime="2019-04-27T16:42:57.995Z" itemprop="dateModified">2019-04-28</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<h1 id="协议"><a href="#协议" class="headerlink" title="协议"></a>协议</h1><p>rocketmq-remoting 工程实现 rocketmq 的远程通信，组件间大部分的通信都是通过这个模块实现。</p>
+<p>rocketmq-remoting 使用 netty 实现的，基于 TCP 的应用层协议。协议格式在 RemotingCommand 定义，一个数据包由数据包长度，header 长度，header，body 四部分组成，如下：</p>
+<pre><code>+--------+---------------+------+------+
+|        |               |      |      |
+| length | header length | head | body |
+|        |               |      |      |
++--------+---------------+------+------+
+</code></pre><p>header 包含几个部分</p>
+<table>
+<thead>
+<tr>
+<th>域</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>code</td>
+<td>表示命令的类型，在 RequestCode 定义</td>
+</tr>
+<tr>
+<td>language</td>
+<td>表示编写的语言，如 java、C、go</td>
+</tr>
+<tr>
+<td>version</td>
+<td>rocketmq 的版本</td>
+</tr>
+<tr>
+<td>opaque</td>
+<td>在一个 tcp channel 中唯一，用于标识 request 和 response 的对应关系</td>
+</tr>
+<tr>
+<td>flag</td>
+<td>保存多个信息；RPC类型，如 1 表示 RPC_ONEWAY；命令类型，  包含两类数据包 REQUEST_COMMAND （请求命令）和 RESPONSE_COMMAND（应答命令）</td>
+</tr>
+<tr>
+<td>remark</td>
+<td>描述信息</td>
+</tr>
+<tr>
+<td>extFields</td>
+<td>用户定义部分，长度可变</td>
+</tr>
+</tbody>
+</table>
+<p>body 就是要发送的命令数据</p>
+<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><img src="/2019/04/26/source-note-rocket-mq-remoting/rocketmq-remoting_类图.png" alt="rocketmq-remoting 类图 部署图"></p>
+<p>remoting 主要由 NettyRemotingServer 和 NettyRemotingClient 分别实现 server， clinet。</p>
+<p>相同点  </p>
+<ol>
+<li>server 可以向 clinet 发送 request 命令， client 也可以向 server 发送命令</li>
+<li>都有 3 种调用方法 sync, async 和 one way，但 server 只能用已经有的 channel 发送， client 可以创建新的 channel 然后发送</li>
+<li>都可以通过 registerProcessor 注册一个命令处理器，用于命令特定命令</li>
+<li>可以更新 namesrv 列表</li>
+</ol>
+<p>不同点  </p>
+<ol>
+<li>server 有侦听端口（这个当然了）</li>
+<li>server 可以设定默认的 processor， clinet 不能</li>
+</ol>
+<h2 id="NettyRemotingAbstract"><a href="#NettyRemotingAbstract" class="headerlink" title="NettyRemotingAbstract"></a>NettyRemotingAbstract</h2><p>server 和 client 的公共部分由 NettyRemotingAbstract 实现，包括：  </p>
+<ul>
+<li>request processor 的注册以及命令的处理， response 命令的处理</li>
+<li>sync, async, one way 三种调用方法的实现</li>
+<li>NettyEvent 的处理。 NettyEvent 是 remoting 定义的，在 netty 连接有变化时触发的事件<br> NettyEventExecutor 可以执行注册了的 ChannelEventListener</li>
+<li>async 和 one way 调用的流量控制</li>
+</ul>
+<h3 id="request-amp-response-的处理"><a href="#request-amp-response-的处理" class="headerlink" title="request &amp; response 的处理"></a>request &amp; response 的处理</h3><p>当子类收到 RemotingCommand 数据时，调用 processMessageReceived 方法，processMessageReceived 根据命令的类型是（type）决定如果是 REQUEST_COMMAND，则调用 processRequestCommand，如果是 RESPONSE_COMMAND 则调用  processResponseCommand</p>
+<p>request</p>
+<pre class=" language-java"><code class="language-java">HashMap<span class="token operator">&lt;</span>Integer<span class="token comment" spellcheck="true">/* request code */</span><span class="token punctuation">,</span> Pair<span class="token operator">&lt;</span>NettyRequestProcessor<span class="token punctuation">,</span> ExecutorService<span class="token operator">>></span> processorTable
+</code></pre>
+<p>成员 processorTable 保存着注册的 request code 和 processor 的对应关系，ExecutorService 是执行的线程池<br>当 processRequestCommand 就是用 processorTable 中找到对应的 processor，然后构造一个 Runnable 提交到指定的线程池  </p>
+<p>这个 Runnable 调用 processRequest 方法得到 response 类型的 RemotingCommand，如果是 sync 或 async 调用方法，就<br>调用 writeAndFlush 方法将 response 写回调用方</p>
+<p>response</p>
+<pre class=" language-java"><code class="language-java">ConcurrentMap<span class="token operator">&lt;</span>Integer <span class="token comment" spellcheck="true">/* opaque */</span><span class="token punctuation">,</span> ResponseFuture<span class="token operator">></span> responseTable
+</code></pre>
+<p>成员 responseTable 保存返回的 response 类型 RemotingCommand  </p>
+<p>当向远端发送一个 request 时，NettyRemotingAbstract 生成一个 opaque 和一个 ResponseFuture 保存到 responseTable<br>当远端发送的 response 到达时，由  processResponseCommand 方法处理，processResponseCommand 方法根据返回的 opaque<br>找到对应的 ResponseFuture，设置返回结果，然后调用回调（async）或唤醒等待 ResponseFuture 的线程(sync)</p>
+<h3 id="sync-async-one-way-三种调用方法的实现"><a href="#sync-async-one-way-三种调用方法的实现" class="headerlink" title="sync, async, one way 三种调用方法的实现"></a>sync, async, one way 三种调用方法的实现</h3><ul>
+<li>sync 同步调用</li>
+</ul>
+<pre class=" language-java"><code class="language-java"><span class="token keyword">public</span> RemotingCommand <span class="token function">invokeSyncImpl</span><span class="token punctuation">(</span><span class="token keyword">final</span> Channel channel<span class="token punctuation">,</span>
+    <span class="token keyword">final</span> RemotingCommand request<span class="token punctuation">,</span>
+    <span class="token keyword">final</span> <span class="token keyword">long</span> timeoutMillis<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+
+    <span class="token comment" spellcheck="true">// 生成 future 并放到 responseTable</span>
+    ResponseFuture responseFuture <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ResponseFuture</span>
+    responseTable<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>opaque<span class="token punctuation">,</span> responseFuture<span class="token punctuation">)</span>
+
+    <span class="token comment" spellcheck="true">// 向远端发送命令</span>
+    channel<span class="token punctuation">.</span><span class="token function">writeAndFlush</span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addListener</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">ChannelFutureListener</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment" spellcheck="true">// 等待写 responseFuture，</span>
+    <span class="token comment" spellcheck="true">// 等收到对应的 Response 时，唤醒这个线程</span>
+    RemotingCommand responseCommand <span class="token operator">=</span> responseFuture<span class="token punctuation">.</span><span class="token function">waitResponse</span><span class="token punctuation">(</span>timeoutMillis<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<ul>
+<li>async 异步调用</li>
+</ul>
+<pre class=" language-java"><code class="language-java">
+<span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">invokeAsyncImpl</span><span class="token punctuation">(</span><span class="token keyword">final</span> Channel channel<span class="token punctuation">,</span>
+    <span class="token keyword">final</span> RemotingCommand request<span class="token punctuation">,</span>
+    <span class="token keyword">final</span> <span class="token keyword">long</span> timeoutMillis<span class="token punctuation">,</span>
+    <span class="token comment" spellcheck="true">// 多了个 callback</span>
+    <span class="token keyword">final</span> InvokeCallback invokeCallback<span class="token punctuation">)</span>
+
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+
+    <span class="token comment" spellcheck="true">// 调用次数控制</span>
+    <span class="token keyword">boolean</span> acquired <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>semaphoreAsync<span class="token punctuation">.</span><span class="token function">tryAcquire</span><span class="token punctuation">(</span>timeoutMillis<span class="token punctuation">,</span> TimeUnit<span class="token punctuation">.</span>MILLISECONDS<span class="token punctuation">)</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>acquired<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+
+        <span class="token comment" spellcheck="true">// 生成 future 并放到 responseTable</span>
+        <span class="token comment" spellcheck="true">// 这个 future 设置了 callback</span>
+        <span class="token keyword">final</span> ResponseFuture responseFuture <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ResponseFuture</span><span class="token punctuation">(</span>channel<span class="token punctuation">,</span> opaque<span class="token punctuation">,</span> timeoutMillis <span class="token operator">-</span> costTime<span class="token punctuation">,</span> invokeCallback<span class="token punctuation">,</span> once<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>responseTable<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>opaque<span class="token punctuation">,</span> responseFuture<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token comment" spellcheck="true">// 向远端发送命令</span>
+        channel<span class="token punctuation">.</span><span class="token function">writeAndFlush</span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addListener</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">ChannelFutureListener</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+        <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token comment" spellcheck="true">// 直接返回</span>
+        <span class="token comment" spellcheck="true">// 等收到对应的 Response 时，会调用对应的 callback</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<ul>
+<li>one way</li>
+</ul>
+<pre class=" language-java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">invokeOnewayImpl</span><span class="token punctuation">(</span><span class="token keyword">final</span> Channel channel<span class="token punctuation">,</span>
+    <span class="token keyword">final</span> RemotingCommand request<span class="token punctuation">,</span>
+    <span class="token keyword">final</span> <span class="token keyword">long</span> timeoutMillis<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+
+    <span class="token keyword">boolean</span> acquired <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>semaphoreOneway<span class="token punctuation">.</span><span class="token function">tryAcquire</span><span class="token punctuation">(</span>timeoutMillis<span class="token punctuation">,</span> TimeUnit<span class="token punctuation">.</span>MILLISECONDS<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment" spellcheck="true">// 调用次数控制</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>acquired<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+
+        <span class="token comment" spellcheck="true">// 向远端发送命令</span>
+        channel<span class="token punctuation">.</span><span class="token function">writeAndFlush</span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addListener</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">ChannelFutureListener</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+        <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token comment" spellcheck="true">// 直接返回，连 response future 都不需要</span>
+    <span class="token punctuation">}</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="ResponseFuture"><a href="#ResponseFuture" class="headerlink" title="ResponseFuture"></a>ResponseFuture</h2><p>保存异步调用的结果。异步调用时远程命令时，先 new 一个 ResponseFuture 对象保存到 responseTable<br>待远程调用返回时，将结果写到 ResponseFuture</p>
+<p>ResponseFuture 通过成员 opaque 和 processChannel 标识出唯一的请求，<br>countDownLatch 成员用于实现同步调用，waitResponse 时 await，有结果时 countDown<br>responseCommand 和 cause 保存调用的结果</p>
+<h2 id="NettyLogger"><a href="#NettyLogger" class="headerlink" title="NettyLogger"></a>NettyLogger</h2><p>桥接 netty 的 log 到 rocketmq。</p>
+<p>netty 没有默认支持一种日志框架，而是自动检测用户使用什么日志框架，它就用什么日志<br>见 <a href="https://segmentfault.com/a/1190000005797595" target="_blank" rel="noopener">https://segmentfault.com/a/1190000005797595</a></p>
+<p>netty 使用 InternalLoggerFactory 实现日志框架检测并生成 logger，而 NettyLogger 就是将 InternalLoggerFactory 的 logger 工厂设置成 NettyBridgeLoggerFactory</p>
+<p>这个工厂生成的 Logger 就是 InternalLogger，即 rocketmq-logging 模块的 logger</p>
+<h2 id="NettyRemotingServer"><a href="#NettyRemotingServer" class="headerlink" title="NettyRemotingServer"></a>NettyRemotingServer</h2><p>用 netty 实现一个 server</p>
+<p>server 创建时会检测能不能用 epool，如果可以就用 EpollEventLoopGroup， 否则用就 NioEventLoopGroup  </p>
+<p>start 方法启动 netty</p>
+<pre class=" language-java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span>  <span class="token punctuation">{</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+
+    ServerBootstrap childHandler <span class="token operator">=</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>serverBootstrap<span class="token punctuation">.</span><span class="token function">group</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>eventLoopGroupBoss<span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">.</span>eventLoopGroupSelector<span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">channel</span><span class="token punctuation">(</span><span class="token function">useEpoll</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">?</span> EpollServerSocketChannel<span class="token punctuation">.</span><span class="token keyword">class</span> <span class="token operator">:</span> NioServerSocketChannel<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span>
+            <span class="token comment" spellcheck="true">// 设定 tcp 连接队列</span>
+            <span class="token punctuation">.</span><span class="token function">option</span><span class="token punctuation">(</span>ChannelOption<span class="token punctuation">.</span>SO_BACKLOG<span class="token punctuation">,</span> <span class="token number">1024</span><span class="token punctuation">)</span>
+            <span class="token comment" spellcheck="true">// server 的惯用选项，就侦听的端口可重复侦听</span>
+            <span class="token punctuation">.</span><span class="token function">option</span><span class="token punctuation">(</span>ChannelOption<span class="token punctuation">.</span>SO_REUSEADDR<span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+            <span class="token comment" spellcheck="true">// 关闭长连接</span>
+            <span class="token punctuation">.</span><span class="token function">option</span><span class="token punctuation">(</span>ChannelOption<span class="token punctuation">.</span>SO_KEEPALIVE<span class="token punctuation">,</span> <span class="token boolean">false</span><span class="token punctuation">)</span>
+            <span class="token comment" spellcheck="true">// 关闭 Nagle 算法，一有数据立马发送</span>
+            <span class="token punctuation">.</span><span class="token function">childOption</span><span class="token punctuation">(</span>ChannelOption<span class="token punctuation">.</span>TCP_NODELAY<span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+            <span class="token comment" spellcheck="true">// TCP 读写窗口大小</span>
+            <span class="token punctuation">.</span><span class="token function">childOption</span><span class="token punctuation">(</span>ChannelOption<span class="token punctuation">.</span>SO_SNDBUF<span class="token punctuation">,</span> nettyServerConfig<span class="token punctuation">.</span><span class="token function">getServerSocketSndBufSize</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">childOption</span><span class="token punctuation">(</span>ChannelOption<span class="token punctuation">.</span>SO_RCVBUF<span class="token punctuation">,</span> nettyServerConfig<span class="token punctuation">.</span><span class="token function">getServerSocketRcvBufSize</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token comment" spellcheck="true">// 设置侦听哪个网卡和端口</span>
+            <span class="token punctuation">.</span><span class="token function">localAddress</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">InetSocketAddress</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>nettyServerConfig<span class="token punctuation">.</span><span class="token function">getListenPort</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">childHandler</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">ChannelInitializer</span><span class="token operator">&lt;</span>SocketChannel<span class="token operator">></span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token annotation punctuation">@Override</span>
+                <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">initChannel</span><span class="token punctuation">(</span>SocketChannel ch<span class="token punctuation">)</span> <span class="token keyword">throws</span> Exception <span class="token punctuation">{</span>
+                    ch<span class="token punctuation">.</span><span class="token function">pipeline</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+                        <span class="token punctuation">.</span><span class="token function">addLast</span><span class="token punctuation">(</span>defaultEventExecutorGroup<span class="token punctuation">,</span> HANDSHAKE_HANDLER_NAME<span class="token punctuation">,</span> <span class="token keyword">new</span> <span class="token class-name">HandshakeHandler</span><span class="token punctuation">(</span>TlsSystemConfig<span class="token punctuation">.</span>tlsMode<span class="token punctuation">)</span><span class="token punctuation">)</span>
+                        <span class="token punctuation">.</span><span class="token function">addLast</span><span class="token punctuation">(</span>defaultEventExecutorGroup<span class="token punctuation">,</span>
+                            <span class="token comment" spellcheck="true">// 继承 MessageToByteEncoder&lt;RemotingCommand>，将 RemotingCommand 写到 ByteBuffer</span>
+                            <span class="token keyword">new</span> <span class="token class-name">NettyEncoder</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                            <span class="token comment" spellcheck="true">// 继承 LengthFieldBasedFrameDecoder，从字节流解析出 RemotingCommand</span>
+                            <span class="token keyword">new</span> <span class="token class-name">NettyDecoder</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                            <span class="token comment" spellcheck="true">// 空闲连接处理器</span>
+                            <span class="token keyword">new</span> <span class="token class-name">IdleStateHandler</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> nettyServerConfig<span class="token punctuation">.</span><span class="token function">getServerChannelMaxIdleTimeSeconds</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                            <span class="token comment" spellcheck="true">// netty 连接管理，NettyEvent 就是通过这个发出</span>
+                            <span class="token keyword">new</span> <span class="token class-name">NettyConnectManageHandler</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                            <span class="token comment" spellcheck="true">// SimpleChannelInboundHandler&lt;RemotingCommand></span>
+                            <span class="token comment" spellcheck="true">// 调用基类 processMessageReceived 方法</span>
+                            <span class="token keyword">new</span> <span class="token class-name">NettyServerHandler</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+                        <span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">}</span>
+            <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>server 有一个 Timer 定时调用 scanResponseTable 清理过期的 response future</p>
+<h2 id="NettyRemotingClient"><a href="#NettyRemotingClient" class="headerlink" title="NettyRemotingClient"></a>NettyRemotingClient</h2><p>用 netty 实现一个 client</p>
+<p>start 方法启动 netty</p>
+<pre class=" language-java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+
+    Bootstrap handler <span class="token operator">=</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>bootstrap<span class="token punctuation">.</span><span class="token function">group</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>eventLoopGroupWorker<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">channel</span><span class="token punctuation">(</span>NioSocketChannel<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">option</span><span class="token punctuation">(</span>ChannelOption<span class="token punctuation">.</span>TCP_NODELAY<span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">option</span><span class="token punctuation">(</span>ChannelOption<span class="token punctuation">.</span>SO_KEEPALIVE<span class="token punctuation">,</span> <span class="token boolean">false</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">option</span><span class="token punctuation">(</span>ChannelOption<span class="token punctuation">.</span>CONNECT_TIMEOUT_MILLIS<span class="token punctuation">,</span> nettyClientConfig<span class="token punctuation">.</span><span class="token function">getConnectTimeoutMillis</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">option</span><span class="token punctuation">(</span>ChannelOption<span class="token punctuation">.</span>SO_SNDBUF<span class="token punctuation">,</span> nettyClientConfig<span class="token punctuation">.</span><span class="token function">getClientSocketSndBufSize</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">option</span><span class="token punctuation">(</span>ChannelOption<span class="token punctuation">.</span>SO_RCVBUF<span class="token punctuation">,</span> nettyClientConfig<span class="token punctuation">.</span><span class="token function">getClientSocketRcvBufSize</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token comment" spellcheck="true">// 设置的 handler 基本与 server 一样</span>
+            <span class="token punctuation">.</span><span class="token function">handler</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">ChannelInitializer</span><span class="token operator">&lt;</span>SocketChannel<span class="token operator">></span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token annotation punctuation">@Override</span>
+                <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">initChannel</span><span class="token punctuation">(</span>SocketChannel ch<span class="token punctuation">)</span> <span class="token keyword">throws</span> Exception <span class="token punctuation">{</span>
+                    ChannelPipeline pipeline <span class="token operator">=</span> ch<span class="token punctuation">.</span><span class="token function">pipeline</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token keyword">if</span> <span class="token punctuation">(</span>nettyClientConfig<span class="token punctuation">.</span><span class="token function">isUseTLS</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                        <span class="token keyword">if</span> <span class="token punctuation">(</span>null <span class="token operator">!=</span> sslContext<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                            pipeline<span class="token punctuation">.</span><span class="token function">addFirst</span><span class="token punctuation">(</span>defaultEventExecutorGroup<span class="token punctuation">,</span> <span class="token string">"sslHandler"</span><span class="token punctuation">,</span> sslContext<span class="token punctuation">.</span><span class="token function">newHandler</span><span class="token punctuation">(</span>ch<span class="token punctuation">.</span><span class="token function">alloc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            log<span class="token punctuation">.</span><span class="token function">info</span><span class="token punctuation">(</span><span class="token string">"Prepend SSL handler"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+                            log<span class="token punctuation">.</span><span class="token function">warn</span><span class="token punctuation">(</span><span class="token string">"Connections are insecure as SSLContext is null!"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">}</span>
+                    <span class="token punctuation">}</span>
+                    pipeline<span class="token punctuation">.</span><span class="token function">addLast</span><span class="token punctuation">(</span>
+                        defaultEventExecutorGroup<span class="token punctuation">,</span>
+                        <span class="token keyword">new</span> <span class="token class-name">NettyEncoder</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token keyword">new</span> <span class="token class-name">NettyDecoder</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token keyword">new</span> <span class="token class-name">IdleStateHandler</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> nettyClientConfig<span class="token punctuation">.</span><span class="token function">getClientChannelMaxIdleTimeSeconds</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token keyword">new</span> <span class="token class-name">NettyConnectManageHandler</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token keyword">new</span> <span class="token class-name">NettyClientHandler</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">}</span>
+            <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>与 server 一样， client 也有一个 Timer 定时调用 scanResponseTable 清理过期的 response future</p>
+<h2 id="序列化"><a href="#序列化" class="headerlink" title="序列化"></a>序列化</h2><p>远程通信需要只能传送字节流，所以在发送 request 或 response 前，需要先将对象转换成字节流，而接受到远端的数据时，需要将字节流转换成数据，这就是序列化和反序列化的职责  </p>
+<p>所有的需要传输的实体类都在 rocketmq-common 工程的 org.apache.rocketmq.common.protocol 的子包中定义，他们之中需要序列化的都会继承 rocketmq-remoting 工程下的 RemotingSerializable</p>
+<p>示例 Register Broker</p>
+<pre class=" language-java"><code class="language-java">
+
+<span class="token comment" spellcheck="true">// 生成 header</span>
+RegisterBrokerRequestHeader requestHeader <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">RegisterBrokerRequestHeader</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> <span class="token comment" spellcheck="true">// set fields</span>
+
+<span class="token comment" spellcheck="true">// 生成 body</span>
+RegisterBrokerBody requestBody <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">RegisterBrokerBody</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> <span class="token comment" spellcheck="true">// set fields</span>
+
+<span class="token keyword">final</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span> body <span class="token operator">=</span> requestBody<span class="token punctuation">.</span><span class="token function">encode</span><span class="token punctuation">(</span>compressed<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment" spellcheck="true">// 将对象转换成 json 形式 byte []</span>
+
+<span class="token comment" spellcheck="true">// 生成 RemotingCommand</span>
+RemotingCommand request <span class="token operator">=</span> RemotingCommand<span class="token punctuation">.</span><span class="token function">createRequestCommand</span><span class="token punctuation">(</span>RequestCode<span class="token punctuation">.</span>REGISTER_BROKER<span class="token punctuation">,</span> requestHeader<span class="token punctuation">)</span><span class="token punctuation">;</span>
+request<span class="token punctuation">.</span><span class="token function">setBody</span><span class="token punctuation">(</span>body<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment" spellcheck="true">// 发送</span>
+remotingClient<span class="token punctuation">.</span><span class="token function">invokeSync</span><span class="token punctuation">(</span>addr<span class="token punctuation">,</span> request<span class="token punctuation">,</span> timeoutMillis<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+
+</code></pre>
+<h1 id="通信命令列表"><a href="#通信命令列表" class="headerlink" title="通信命令列表"></a>通信命令列表</h1>  
+	</div>
+		<footer class="article-footer clearfix">
+
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://yoursite.com/2019/04/26/source-note-rocket-mq-remoting/" data-title="【阅读笔记】rocketmq 远程通信 （二） | Deer&#39;s blog" data-tsina class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev">
+ <a href="/2019/04/29/java-class-file-version/" title="【java】 class 文件与 JDK 版本的对应关系">
+  <strong>PREVIOUS:</strong><br>
+  <span>
+  【java】 class 文件与 JDK 版本的对应关系</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2019/04/24/source-note-rocket-mq-concept/" title="【阅读笔记】rocketmq 概念与架构 （一）">
+ <strong>NEXT:</strong><br> 
+ <span>【阅读笔记】rocketmq 概念与架构 （一）
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+</div>  
+    </div>
+    <footer><div id="footer">
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<div class="social-font clearfix">
+		
+		
+		
+		
+		
+	</div>
+		<p class="copyright">Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/A-limon/pacman" target="_blank" title="Pacman">Pacman</a> © 2019 
+		
+		<a href="http://yoursite.com" target="_blank" title="Deer">Deer</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  
+  // $this.append(html);
+
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+
+
+  </body>
+</html>
+
