@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next gemini" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=sans-serif:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext">
+  
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+<link rel="stylesheet" href="/css/main.css?v=7.1.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.1.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.1.2" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.1.2',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="基本功能 生产者、消费者从 namesrv 中获取可用的 broker 地址（查询功能）  broker 定时向 naemsrv 发送心跳信息，维护可用 broker 地址（更新信息）  保存 key-value 配置信息   多个 namesrv 实例组成集群，但相互独立，没有信息交换 命令参数usage: mqnamesrv [-c ] [-h] [-n ] [-p] -c,–configFi">
+<meta name="keywords" content="rocketmq">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【阅读笔记】rocketmq 命名服务 namesrv （三）">
+<meta property="og:url" content="http://yoursite.com/2019/05/04/source-note-rocket-mq-name/index.html">
+<meta property="og:site_name" content="Deer&#39;s blog">
+<meta property="og:description" content="基本功能 生产者、消费者从 namesrv 中获取可用的 broker 地址（查询功能）  broker 定时向 naemsrv 发送心跳信息，维护可用 broker 地址（更新信息）  保存 key-value 配置信息   多个 namesrv 实例组成集群，但相互独立，没有信息交换 命令参数usage: mqnamesrv [-c ] [-h] [-n ] [-p] -c,–configFi">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-06-15T13:02:31.855Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【阅读笔记】rocketmq 命名服务 namesrv （三）">
+<meta name="twitter:description" content="基本功能 生产者、消费者从 namesrv 中获取可用的 broker 地址（查询功能）  broker 定时向 naemsrv 发送心跳信息，维护可用 broker 地址（更新信息）  保存 key-value 配置信息   多个 namesrv 实例组成集群，但相互独立，没有信息交换 命令参数usage: mqnamesrv [-c ] [-h] [-n ] [-p] -c,–configFi">
+
+
+
+
+
+  
+  
+  <link rel="canonical" href="http://yoursite.com/2019/05/04/source-note-rocket-mq-name/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>【阅读笔记】rocketmq 命名服务 namesrv （三） | Deer's blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Deer's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/04/source-note-rocket-mq-name/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Deer">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Deer's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">【阅读笔记】rocketmq 命名服务 namesrv （三）
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-05-04 22:11:33" itemprop="dateCreated datePublished" datetime="2019-05-04T22:11:33+08:00">2019-05-04</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-06-15 21:02:31" itemprop="dateModified" datetime="2019-06-15T21:02:31+08:00">2019-06-15</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="基本功能"><a href="#基本功能" class="headerlink" title="基本功能"></a>基本功能</h1><ol>
+<li><p>生产者、消费者从 namesrv 中获取可用的 broker 地址（查询功能）</p>
+</li>
+<li><p>broker 定时向 naemsrv 发送心跳信息，维护可用 broker 地址（更新信息）</p>
+</li>
+<li><p>保存 key-value 配置信息</p>
+</li>
+</ol>
+<p>多个 namesrv 实例组成集群，但相互独立，没有信息交换</p>
+<h1 id="命令参数"><a href="#命令参数" class="headerlink" title="命令参数"></a>命令参数</h1><p>usage: mqnamesrv [-c <arg>] [-h] [-n <arg>] [-p]</arg></arg></p>
+<p>-c,–configFile <arg> Name server config properties file<br>设置配置文件位置</arg></p>
+<p>-h,–help Print help<br>打印帮助</p>
+<p>-n,–namesrvAddr <arg> Name server address list, eg: 192.168.0.1:9876;192.168.0.2:9876<br>设置服务器 IP 和端口</arg></p>
+<p>-p,–printConfigItem Print all config item<br>仅打印配置信息</p>
+<h1 id="功能实现"><a href="#功能实现" class="headerlink" title="功能实现"></a>功能实现</h1><p>namesrv 的入口类是 org.apache.rocketmq.namesrv.NamesrvStartup， 主要功能由 NamesrvController 类组合起来，配置由 NamesrvConfig 和 NettyServerConfig 两个类保存</p>
+<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><ol>
+<li><p>创建一个 NamesrvController 对象</p>
+<p> 创建 NamesrvConfig 和 NettyServerConfig 两个配置对象，如果指定了配置文件，就用配置文件中读取属性</p>
+<p> 配置日志配置文件为 ${ROCKETMQ_HOME}/conf/logback_namesrv.xml</p>
+</li>
+<li><p>调用 controller 的 initialize 方法</p>
+</li>
+<li><p>注册 ShutdownHook，这个 shutdown hook 调用 controller 的 shutdown 方法</p>
+</li>
+<li><p>调用 controller 的 start 方法启动 namesrv</p>
+</li>
+</ol>
+<p>启动后打印 “The Name Server boot success” 后退出主线程</p>
+<p>命令行参数的定义和解析由 srvutil 包的 ServerUtil 类实现， ServerUtil 是对 commons-cli 的一层封装</p>
+<h2 id="定时任务"><a href="#定时任务" class="headerlink" title="定时任务"></a>定时任务</h2><table>
+<thead>
+<tr>
+<th>所在的类</th>
+<th>执行器</th>
+<th>频率</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NamesrvController</td>
+<td>scheduledExecutorService</td>
+<td>10s</td>
+<td>routeInfoManager.scanNotActiveBroker()</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>10 min</td>
+<td>执行 kvConfigManager.printAllPeriodically()，在日志文件打印 KVConfigManager 的配置内容</td>
+</tr>
+</tbody>
+</table>
+<h2 id="保存-key-value"><a href="#保存-key-value" class="headerlink" title="保存 key-value"></a>保存 key-value</h2><p>key-value 配置由 KVConfigManager 类管理</p>
+<p>KVConfigManager 的成员有<br>ReadWriteLock lock：一个读写锁，保护 configTable 成员</p>
+<p>HashMap&lt;String, HashMap&lt;String, String&gt;&gt; configTable：一个二维的散列表，第一个 key 是 Namespace，第二个 key 是 Key，之后是 value</p>
+<p>成员方法有<br>load：从文件加载 configTable，文件路径由 NamesrvConfig 的 kvConfigPath 配置，默认是 ${user.home}/namesrv/kvConfig.json</p>
+<p>persist：将 configTable 保存到文件，json 格式</p>
+<p>putKVConfig：增加一个 key-value 配置</p>
+<p>deleteKVConfig：删除一个 key-value 配置</p>
+<p>getKVListByNamespace：获取配置</p>
+<p>getKVConfig：获取配置</p>
+<p>printAllPeriodically：周期性地打印配置的内容</p>
+<h2 id="保存-broker-信息"><a href="#保存-broker-信息" class="headerlink" title="保存 broker 信息"></a>保存 broker 信息</h2><p>broker 信息由 RouteInfoManager 类管理</p>
+<p>RouteInfoManager 的成员有</p>
+<p>ReadWriteLock lock：一个读写锁，保护所有数据成员</p>
+<p>HashMap&lt;String, List<queuedata>&gt; topicQueueTable：保存 topic 信息，key 是 topic 名，QueueData 包含了队列信息。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">QueueData</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> String brokerName;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> readQueueNums;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> writeQueueNums;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> perm;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> topicSynFlag;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></queuedata></p>
+<p>HashMap&lt;String, BrokerData&gt; brokerAddrTable：保存 broker 信息，key 是 broker name，BrokerData 包含了 broker 信息</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BrokerData</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> String cluster;</span><br><span class="line">  <span class="keyword">private</span> String brokerName;</span><br><span class="line">  <span class="keyword">private</span> HashMap&lt;Long<span class="comment">/* brokerId */</span>, String<span class="comment">/* broker address */</span>&gt; brokerAddrs;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>HashMap&lt;String, Set<string>&gt; clusterAddrTable: 保存 broker 集群信息，key 是集群名， set 保存了 broker namesrv</string></p>
+<p>HashMap&lt;String, BrokerLiveInfo&gt; brokerLiveTable：保存 broker 的存活信息，key 是 broker 的地址<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BrokerLiveInfo</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">long</span> lastUpdateTimestamp; <span class="comment">// 最后更新时间</span></span><br><span class="line">  <span class="keyword">private</span> DataVersion dataVersion;  <span class="comment">// 数据版本号</span></span><br><span class="line">  <span class="keyword">private</span> Channel channel;</span><br><span class="line">  <span class="keyword">private</span> String haServerAddr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>HashMap&lt;String, List<string>&gt; filterServerTable：保存 filter server，key 是 broker 的地址，list 里是 filter server</string></p>
+<h2 id="功能实现-1"><a href="#功能实现-1" class="headerlink" title="功能实现"></a>功能实现</h2><p>namesrv 主要接收请求 ，不会发起请求，请求由 DefaultRequestProcessor 类处理</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PUT_KV_CONFIG</td>
+<td>调用  KVConfigManager 成员方法增加 key-value 配置</td>
+</tr>
+<tr>
+<td>GET_KV_CONFIG</td>
+<td>获取配置</td>
+</tr>
+<tr>
+<td>GET_KVLIST_BY_NAMESPACE</td>
+<td>获取配置</td>
+</tr>
+<tr>
+<td>DELETE_KV_CONFIG</td>
+<td>删除配置</td>
+</tr>
+<tr>
+<td>UPDATE_NAMESRV_CONFIG</td>
+<td>更新 namesrv 的配置</td>
+</tr>
+<tr>
+<td>GET_NAMESRV_CONFIG</td>
+<td>获取 namesrv 的配置</td>
+</tr>
+<tr>
+<td>QUERY_DATA_VERSION</td>
+<td></td>
+</tr>
+<tr>
+<td>REGISTER_BROKER</td>
+<td>broker 上线时，以及定期调用，用于注册 broker 信息</td>
+</tr>
+<tr>
+<td>UNREGISTER_BROKER</td>
+<td>broker 正常下线时调用，更新 broker 信息</td>
+</tr>
+<tr>
+<td>GET_BROKER_CLUSTER_INFO</td>
+<td></td>
+</tr>
+<tr>
+<td>WIPE_WRITE_PERM_OF_BROKER</td>
+<td></td>
+</tr>
+<tr>
+<td>GET_ALL_TOPIC_LIST_FROM_NAMESERVER</td>
+<td></td>
+</tr>
+<tr>
+<td>DELETE_TOPIC_IN_NAMESRV</td>
+<td></td>
+</tr>
+<tr>
+<td>GET_TOPICS_BY_CLUSTER</td>
+<td>获取一个集群的所有 topic</td>
+</tr>
+<tr>
+<td>GET_SYSTEM_TOPIC_LIST_FROM_NS</td>
+<td></td>
+</tr>
+<tr>
+<td>GET_UNIT_TOPIC_LIST</td>
+<td></td>
+</tr>
+<tr>
+<td>GET_HAS_UNIT_SUB_TOPIC_LIST</td>
+<td></td>
+</tr>
+<tr>
+<td>GET_HAS_UNIT_SUB_UNUNIT_TOPIC_LIST</td>
+<td></td>
+</tr>
+<tr>
+<td>GET_ROUTEINTO_BY_TOPIC</td>
+<td>根据 topic 获取 broker 地址</td>
+</tr>
+</tbody>
+</table>
+<h3 id="register-broker"><a href="#register-broker" class="headerlink" title="register broker"></a>register broker</h3><p>broker 发送 REGISTER_BROKER 命令时，会带来brokerName、brokerAddr、clusterName、haServerAddr、brokerId 以及 topic 信息。这些信息会保存到 RouteInfoManager 中</p>
+<ol>
+<li><p>上锁</p>
+</li>
+<li><p>修改 clusterAddrTable，需要 clusterName 和 brokerName 两个要素</p>
+</li>
+<li><p>修改 brokerAddrTable，由于 BrokerData 里保存了 brokerId，当发生主从切换时，要先删除原 slave 的 brokerData，再插入 新 master 的 BrokerData</p>
+</li>
+<li><p>如果 broker 是 master 并且带来了 topic 的信息， 则更新 topicQueueTable</p>
+</li>
+<li><p>更新 brokerLiveTable 的数据</p>
+</li>
+<li><p>更新 filterServerList</p>
+</li>
+<li><p>解锁</p>
+</li>
+</ol>
+<p>返回的结果里会包含这组 broker 的 master 地址以及 master 的 HA 地址</p>
+<h3 id="get-route-info-by-topic"><a href="#get-route-info-by-topic" class="headerlink" title="get route info by topic"></a>get route info by topic</h3><p>从 topicQueueTable 中获取 QueueData 列表，然后重组成 TopicRouteData 数据</p>
+<h3 id="Broker-存活检查"><a href="#Broker-存活检查" class="headerlink" title="Broker 存活检查"></a>Broker 存活检查</h3><p>存活检查有两种方法</p>
+<ol>
+<li><p>NamesrvController 有个线程定期（10秒）调用 routeInfoManager.scanNotActiveBroker()，检查brokerLiveTable 中的 lastUpdateTimestamp。<br>如果 lastUpdateTimestamp + BROKER_CHANNEL_EXPIRED_TIME （2分钟）&lt; 当前时间，则认为这个 broker 已经不再存活，并将之从 brokerLiveTable 删除。而 broker 周期性发送 REGISTER_BROKER 命令到 namesrv，namesrv 这时会更新 lastUpdateTimestamp</p>
+</li>
+<li><p>BrokerHousekeepingService 侦听 Channel 事件，如果发生 close，exception, idle 等事件，也认为 broker 不再存活</p>
+</li>
+</ol>
+<hr>
+<p>End</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        
+          
+        
+        <div class="post-tags">
+          
+            <a href="/tags/rocketmq/" rel="tag"># rocketmq</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/26/source-note-rocket-mq-remoting/" rel="next" title="【阅读笔记】rocketmq 远程通信 （二）">
+                <i class="fa fa-chevron-left"></i> 【阅读笔记】rocketmq 远程通信 （二）
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/05/05/source-note-rocket-mq-store/" rel="prev" title="【阅读笔记】rocketmq 消息存储 （四）">
+                【阅读笔记】rocketmq 消息存储 （四） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Deer</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">3</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#基本功能"><span class="nav-number">1.</span> <span class="nav-text">基本功能</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#命令参数"><span class="nav-number">2.</span> <span class="nav-text">命令参数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#功能实现"><span class="nav-number">3.</span> <span class="nav-text">功能实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#启动"><span class="nav-number">3.1.</span> <span class="nav-text">启动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定时任务"><span class="nav-number">3.2.</span> <span class="nav-text">定时任务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#保存-key-value"><span class="nav-number">3.3.</span> <span class="nav-text">保存 key-value</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#保存-broker-信息"><span class="nav-number">3.4.</span> <span class="nav-text">保存 broker 信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#功能实现-1"><span class="nav-number">3.5.</span> <span class="nav-text">功能实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#register-broker"><span class="nav-number">3.5.1.</span> <span class="nav-text">register broker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#get-route-info-by-topic"><span class="nav-number">3.5.2.</span> <span class="nav-text">get route info by topic</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Broker-存活检查"><span class="nav-number">3.5.3.</span> <span class="nav-text">Broker 存活检查</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Deer</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.1.2</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/utils.js?v=7.1.2"></script>
+
+  <script src="/js/motion.js?v=7.1.2"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/affix.js?v=7.1.2"></script>
+
+  <script src="/js/schemes/pisces.js?v=7.1.2"></script>
+
+
+
+
+  
+  <script src="/js/scrollspy.js?v=7.1.2"></script>
+<script src="/js/post-details.js?v=7.1.2"></script>
+
+
+
+  
+
+
+  <script src="/js/next-boot.js?v=7.1.2"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
