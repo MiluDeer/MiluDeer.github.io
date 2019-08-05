@@ -126,18 +126,18 @@
 
 
 
-  <meta name="description" content="描述 java 线程的基本概念">
-<meta name="keywords" content="jdk">
+  <meta name="description" content="介绍 rocketmq 中的勾子">
+<meta name="keywords" content="rocketmq">
 <meta property="og:type" content="article">
-<meta property="og:title" content="【java】线程">
-<meta property="og:url" content="http://yoursite.com/2018/04/07/jdk-thread/index.html">
+<meta property="og:title" content="【阅读笔记】rocketmq 特性实现 —— 消息Hook">
+<meta property="og:url" content="http://yoursite.com/2019/06/28/source-note-rocket-mq-message-hook/index.html">
 <meta property="og:site_name" content="Deer&#39;s blog">
-<meta property="og:description" content="描述 java 线程的基本概念">
+<meta property="og:description" content="介绍 rocketmq 中的勾子">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-06-15T13:19:29.980Z">
+<meta property="og:updated_time" content="2019-07-02T09:53:27.315Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="【java】线程">
-<meta name="twitter:description" content="描述 java 线程的基本概念">
+<meta name="twitter:title" content="【阅读笔记】rocketmq 特性实现 —— 消息Hook">
+<meta name="twitter:description" content="介绍 rocketmq 中的勾子">
 
 
 
@@ -145,7 +145,7 @@
 
   
   
-  <link rel="canonical" href="http://yoursite.com/2018/04/07/jdk-thread/">
+  <link rel="canonical" href="http://yoursite.com/2019/06/28/source-note-rocket-mq-message-hook/">
 
 
 
@@ -155,7 +155,7 @@
   };
 </script>
 
-  <title>【java】线程 | Deer's blog</title>
+  <title>【阅读笔记】rocketmq 特性实现 —— 消息Hook | Deer's blog</title>
   
 
 
@@ -354,7 +354,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/07/jdk-thread/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/28/source-note-rocket-mq-message-hook/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Deer">
@@ -371,7 +371,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">【java】线程
+          <h1 class="post-title" itemprop="name headline">【阅读笔记】rocketmq 特性实现 —— 消息Hook
 
               
             
@@ -397,7 +397,7 @@
                 
               
 
-              <time title="创建时间：2018-04-07 21:17:21" itemprop="dateCreated datePublished" datetime="2018-04-07T21:17:21+08:00">2018-04-07</time>
+              <time title="创建时间：2019-06-28 14:36:26" itemprop="dateCreated datePublished" datetime="2019-06-28T14:36:26+08:00">2019-06-28</time>
             
 
             
@@ -432,69 +432,15 @@
       
 
       
-        <p>描述 java 线程的基本概念</p>
+        <p>介绍 rocketmq 中的勾子</p>
 <a id="more"></a>
-<h1 id="java-线程状态"><a href="#java-线程状态" class="headerlink" title="java 线程状态"></a>java 线程状态</h1><p>java.lang.Thread.State 定义了 java 线程中的状态，目前 JDK12 有 NEW, RUNNABLE, BLOCKED, WAITING, TIMED_WAITING, TERMINATED 6 种状态。可以通过 getState() 方法来获取线程的状态。</p>
-<ol>
-<li><p>NEW<br> 创建后尚未启动的线程处于这个状态</p>
-</li>
-<li><p>RUNNABLE<br> RUNNABLE 表示线程在等待调度或者正在运行，调用 start() 方法后就处于这个状态</p>
-</li>
-<li><p>BLOCKED<br> 阻塞状态，当尝试进入一个 synchronized 语句块/方法时，锁已经被其它线程占有，就会被阻塞，直到另一个线程走完临界区或发生了相应锁对象的 wait() 操作后，它才有机会去争夺进入临界区的权利。<br> 处于 BLOCKED 状态的线程，即使对其调用 thread.interrupt() 也无法改变其阻塞状态，因为 interrupt() 方法只是设置线程的中断状态，即做一个标记，不能唤醒处于阻塞状态的线程。</p>
-</li>
-<li><p>WAITING<br> 无限期等待状态，状态通常是指一个线程拥有对象锁后进入到相应的代码区域后，调用相应的“锁对象”的 wait() 方法操作后产生的一种结果。<br> 变相的方法还有 Thread.join()， Unsafe.park() 等</p>
-</li>
-<li><p>TIMED_WAITING<br> 限期等待，同 WAITING，不过有超，进入的方法有 Thread.sleep()， 带时间版本的 wait()，Thread.join()， Unsafe.park() 等</p>
-</li>
-<li><p>TERMINATED<br> 线程已终止。</p>
-</li>
-</ol>
-<p>“阻塞”与“等待”的区别：</p>
-<ul>
-<li>“阻塞”状态是等待着获取到一个<strong>独占锁</strong>，进入“阻塞”状态都是被动的，离开“阻塞”状态是因为<strong>其它线程</strong>释放了锁，不阻塞了<br> 例如等待其他线程退出 synchronized 块</li>
-<li>“等待”状态是在<strong>等待</strong>一段时间，或者<strong>唤醒</strong>动作的发生，进入“等待”状态是主动的<br> 例如 wait() 就等待 notify 或 notifyAll 被调用；join 等待一个线程结束；park 等待 unpark 被调用</li>
-</ul>
-<p>WAITING 状态还可以细化为</p>
-<ul>
-<li>休眠 （sleeping），调用了 Thread.sleep()</li>
-<li>等待 （on object monitor），调用了 wait()</li>
-<li>驻留 （parking），调用了 Unsafe.park()</li>
-</ul>
-<h1 id="线程操作"><a href="#线程操作" class="headerlink" title="线程操作"></a>线程操作</h1><ol>
-<li><p>public static Thread currentThread()<br> 获取正在运行的线程的 thread 对象</p>
-</li>
-<li><p>public static native void yield()<br> 提示调度器，当前线程放弃时间片。调度器也可以忽略这个提示。</p>
-</li>
-<li><p>public static native void sleep(long millis) throws InterruptedException<br> public static void sleep(long millis, int nanos) throws InterruptedException<br> 使线程进入睡眠，线程不会释放它持有的 monitors</p>
-</li>
-<li><p>public static boolean interrupted()<br> public boolean isInterrupted()<br> 测试线程是否被中断过，中断状态会被 reset，static 版本针对当前线程</p>
-</li>
-<li><p>public static int activeCount()<br> 估计当前线程有多少同组的活动线程</p>
-</li>
-<li><p>public synchronized void start()<br> 启动线程</p>
-</li>
-<li><p>public void interrupt()<br> 中断线程，并设置中断状态位<br> 如果线程在 WAITING 状态，interrupt() 会中断等待状态，线程会收到 InterruptedException<br> 如果线程阻塞在 InterruptibleChannel，则 channel 会被关闭，线程会收到 ClosedByInterruptException<br> 如果线程阻塞在 java.nio.channels.Selector， 则直接返回</p>
-</li>
-</ol>
-<ol start="8">
-<li><p>public final native boolean isAlive()<br> 测试线程是否“活着”</p>
-</li>
-<li><p>public final void setPriority(int newPriority)<br> public final int getPriority()<br> 设置/获取线程优先级</p>
-</li>
-<li><p>public final synchronized void setName(String name)<br>public final String getName()<br>设置/获取线程名</p>
-</li>
-<li><p>public final synchronized void join(final long millis)<br>public final synchronized void join(long millis, int nanos)<br>public final void join() throws InterruptedException<br>等待 Thread 对象关联的线程结束，用 wait() 实现</p>
-</li>
-<li><p>public final void setDaemon(boolean on)<br>public final boolean isDaemon()<br>将线程变为守护线程。线程分守护线程和用户线程两种，如果只存在守护线程，没有用户线程的运行，JVM 退出</p>
-</li>
-<li><p>public final void checkAccess()<br>检查当前线程是否有权限修改目标 Thread 关联的线程</p>
-</li>
-<li><p>public StackTraceElement[] getStackTrace()</p>
-</li>
-<li>public static void dumpStack()</li>
-<li>public static native boolean holdsLock(Object obj)</li>
-<li>public static Map&lt;Thread, StackTraceElement[]&gt; getAllStackTraces()<br>这些用于分析问题有用</li>
-</ol>
+<h1 id="RPC-hook"><a href="#RPC-hook" class="headerlink" title="RPC hook"></a>RPC hook</h1><h1 id="client-中的-hook"><a href="#client-中的-hook" class="headerlink" title="client 中的 hook"></a>client 中的 hook</h1><p>message hook 可以在消息发送、消费前后执行用户自定义的代码</p>
+<h2 id="producer-hook"><a href="#producer-hook" class="headerlink" title="producer hook"></a>producer hook</h2><p>可以在消息发送前后执行用户定义的代码</p>
+<p>示例<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">producer.getDefaultMQProducerImpl().registerSendMessageHook(<span class="keyword">new</span> SendMessageHook() &#123;</span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">hookName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"hook"</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 消息发送前执行代码</span></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sendMessageBefore</span><span class="params">(SendMessageContext context)</span> </span>&#123;</span><br><span class="line">      System.out.println(<span class="keyword">new</span> String(context.getMessage().getBody()));</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 可以修改消息的内容和属性</span></span><br><span class="line">        context.getMessage().setBody(<span class="string">"update to something else"</span>.getBytes(RemotingHelper.DEFAULT_CHARSET));</span><br><span class="line">      &#125; <span class="keyword">catch</span>(Exception ignore) &#123;</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"> <span class="comment">// 消息发送后执行代码</span></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sendMessageAfter</span><span class="params">(SendMessageContext context)</span> </span>&#123;</span><br><span class="line">      System.out.println(<span class="keyword">new</span> String(context.getMessage().getBody()));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></p>
+<h2 id="consumer-hook"><a href="#consumer-hook" class="headerlink" title="consumer hook"></a>consumer hook</h2><p>可以在消息消费前后执行用户定义的代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">consumer.getDefaultMQPushConsumerImpl().registerConsumeMessageHook(<span class="keyword">new</span> ConsumeMessageHook()&#123;</span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">hookName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"hook"</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 消息消费前执行</span></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">consumeMessageBefore</span><span class="params">(ConsumeMessageContext context)</span> </span>&#123;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 消息消费后执行</span></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">consumeMessageAfter</span><span class="params">(ConsumeMessageContext context)</span> </span>&#123;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h3 id="filter-hook"><a href="#filter-hook" class="headerlink" title="filter hook"></a>filter hook</h3><p>可以在拉回消息并且在执行过滤后，执行用户定义的代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">consumer.getDefaultMQPushConsumerImpl().registerFilterMessageHook(<span class="keyword">new</span> FilterMessageHook() &#123;</span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">hookName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">filterMessage</span><span class="params">(FilterMessageContext context)</span> </span>&#123;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
       
     </div>
@@ -521,7 +467,7 @@
         
         <div class="post-tags">
           
-            <a href="/tags/jdk/" rel="tag"># jdk</a>
+            <a href="/tags/rocketmq/" rel="tag"># rocketmq</a>
           
         </div>
       
@@ -534,14 +480,18 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
+              <a href="/2019/06/23/source-note-rocket-mq-retry/" rel="next" title="【阅读笔记】rocketmq 特性实现 —— 消息重试及死信队列">
+                <i class="fa fa-chevron-left"></i> 【阅读笔记】rocketmq 特性实现 —— 消息重试及死信队列
+              </a>
+            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2018/04/08/jdk-concurrent-lock/" rel="prev" title="【阅读笔记】 jdk12 juc 锁">
-                【阅读笔记】 jdk12 juc 锁 <i class="fa fa-chevron-right"></i>
+              <a href="/2019/06/30/source-note-rocket-mq-message-trace/" rel="prev" title="【阅读笔记】rocketmq 特性实现 —— 消息跟踪">
+                【阅读笔记】rocketmq 特性实现 —— 消息跟踪 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -676,7 +626,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#java-线程状态"><span class="nav-number">1.</span> <span class="nav-text">java 线程状态</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#线程操作"><span class="nav-number">2.</span> <span class="nav-text">线程操作</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#RPC-hook"><span class="nav-number">1.</span> <span class="nav-text">RPC hook</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#client-中的-hook"><span class="nav-number">2.</span> <span class="nav-text">client 中的 hook</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#producer-hook"><span class="nav-number">2.1.</span> <span class="nav-text">producer hook</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#consumer-hook"><span class="nav-number">2.2.</span> <span class="nav-text">consumer hook</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#filter-hook"><span class="nav-number">2.2.1.</span> <span class="nav-text">filter hook</span></a></li></ol></li></ol></li></ol></div>
             
 
           </div>
