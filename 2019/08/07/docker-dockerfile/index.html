@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next gemini" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=sans-serif:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext">
+  
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+<link rel="stylesheet" href="/css/main.css?v=7.1.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.1.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.1.2" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.1.2',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="本文介绍 Dockerfile 和 Docker Compose 的指令以及用使用方法">
+<meta name="keywords" content="docker">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【docker】 Dockerfile &amp; Docker Compose">
+<meta property="og:url" content="http://yoursite.com/2019/08/07/docker-dockerfile/index.html">
+<meta property="og:site_name" content="Deer&#39;s blog">
+<meta property="og:description" content="本文介绍 Dockerfile 和 Docker Compose 的指令以及用使用方法">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-09-21T09:32:08.511Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【docker】 Dockerfile &amp; Docker Compose">
+<meta name="twitter:description" content="本文介绍 Dockerfile 和 Docker Compose 的指令以及用使用方法">
+
+
+
+
+
+  
+  
+  <link rel="canonical" href="http://yoursite.com/2019/08/07/docker-dockerfile/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>【docker】 Dockerfile & Docker Compose | Deer's blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Deer's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/07/docker-dockerfile/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Deer">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Deer's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">【docker】 Dockerfile & Docker Compose
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-08-07 20:04:54" itemprop="dateCreated datePublished" datetime="2019-08-07T20:04:54+08:00">2019-08-07</time>
+            
+
+            
+          </span>
+
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文介绍 Dockerfile 和 Docker Compose 的指令以及用使用方法</p>
+<a id="more"></a>
+<h2 id="Dockerfile"><a href="#Dockerfile" class="headerlink" title="Dockerfile"></a>Dockerfile</h2><p>Dockerfile 是一个文本格式的配置文件，使用 Dockerfile 可以快速创建自定义的<strong>镜像</strong></p>
+<h3 id="基本结构"><a href="#基本结构" class="headerlink" title="基本结构"></a>基本结构</h3><p>Dockerfile 由一行行命令语句组成，支持以 # 开头的注释行。 Dockerfile 分为四部分：基础镜像信息、维护者信息、镜像操作指令和容器启动时执行指令。</p>
+<p>示例：基于 debian:jessie 基础镜像上安装 nginx 环境，制作一个新的 nginx 镜像</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment"># 基础镜像信息</span></span><br><span class="line"><span class="keyword">FROM</span> debian:jessie</span><br><span class="line"></span><br><span class="line"><span class="comment"># 维护者信息</span></span><br><span class="line"><span class="keyword">MAINTAINER</span> NGINX Docker Maintainers <span class="string">"docker-maint@nginx.com"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 镜像操作指令</span></span><br><span class="line"><span class="keyword">ENV</span> NGINX_VERSION <span class="number">1.10</span>.<span class="number">1</span>-<span class="number">1</span>~jessie</span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apt-key adv --keyserver hkp://pgp.mit.edu:80 --recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62 \</span></span><br><span class="line"><span class="bash">    &amp;&amp; <span class="built_in">echo</span> <span class="string">"deb http://nginx.org/packages/debian/ jessie nginx"</span> &gt;&gt; /etc/apt/sources.list \</span></span><br><span class="line"><span class="bash">    &amp;&amp; apt-get update \</span></span><br><span class="line"><span class="bash">    &amp;&amp; apt-get install --no-install-recommends --no-install-suggests -y \</span></span><br><span class="line"><span class="bash">    ca-certificates \</span></span><br><span class="line"><span class="bash">    nginx=<span class="variable">$&#123;NGINX_VERSION&#125;</span> \</span></span><br><span class="line"><span class="bash">    nginx-module-xslt \</span></span><br><span class="line"><span class="bash">    nginx-module-geoip \</span></span><br><span class="line"><span class="bash">    nginx-module-image-filter \</span></span><br><span class="line"><span class="bash">    nginx-module-perl \</span></span><br><span class="line"><span class="bash">    nginx-module-njs \</span></span><br><span class="line"><span class="bash">    gettext-base \</span></span><br><span class="line"><span class="bash">    &amp;&amp; rm -rf /var/lib/apt/lists/*</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> ln -sf /dev/stdout /var/<span class="built_in">log</span>/nginx/access.log \</span></span><br><span class="line"><span class="bash">    &amp;&amp; ln -sf /dev/stderr /var/<span class="built_in">log</span>/nginx/error.log</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">80</span> <span class="number">433</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 容器启动时执行指令</span></span><br><span class="line"><span class="keyword">CMD</span><span class="bash"> [<span class="string">"nginx"</span>, <span class="string">"-g"</span>, <span class="string">"daemon off;"</span>]</span></span><br></pre></td></tr></table></figure>
+<h3 id="Dockerfile-指令说明"><a href="#Dockerfile-指令说明" class="headerlink" title="Dockerfile 指令说明"></a>Dockerfile 指令说明</h3><table>
+<thead>
+<tr>
+<th>指令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FROM</td>
+<td>指定基础镜像，FROM [image]:[tag]，每个 Dockerfile 的第一件指令必须是 FROM</td>
+</tr>
+<tr>
+<td>MAINTAINER</td>
+<td>指定维护者信息，MAINTAINER [name]</td>
+</tr>
+<tr>
+<td>RUN</td>
+<td>运行命令制作镜像，RUN [command] 或 RUN [“executable”, “param1”, “param2”]</td>
+</tr>
+<tr>
+<td>LABEL</td>
+<td>指定生成镜像的元数据标签信息</td>
+</tr>
+<tr>
+<td>EXPOSE</td>
+<td>声明镜像内服务所监听的端口</td>
+</tr>
+<tr>
+<td>ENV</td>
+<td>指定环境变量，镜像生成过程中可以被后续 RUN 指令使用，镜像启动的容器中也会存在</td>
+</tr>
+<tr>
+<td>ADD</td>
+<td>复制URL的内容到容器， ADD [src] [dest]</td>
+</tr>
+<tr>
+<td>COPY</td>
+<td>复制宿主中的内容到容器， COPY [src] [dest]</td>
+</tr>
+<tr>
+<td>VOLUME</td>
+<td>创建数据卷挂载点，VOLUME [dir]</td>
+</tr>
+<tr>
+<td>USER</td>
+<td>指定运行容器时的用户</td>
+</tr>
+<tr>
+<td>WORKDIR</td>
+<td>配置工作目录，为后续的 EVN，CMD 和 ENTRYPOINT 指令配置工作目录</td>
+</tr>
+<tr>
+<td>ARG</td>
+<td>指定镜像内使用的参数，这些参数在使用 docker build 命令时才传入</td>
+</tr>
+<tr>
+<td>ONBUILD</td>
+<td>配置当所创建的镜像作为其他镜像的基础镜像时，所执行的创建操作指令</td>
+</tr>
+<tr>
+<td>STOPSIGNAL</td>
+<td>容器退出的信号值</td>
+</tr>
+<tr>
+<td>HEALTHCHECK</td>
+<td>如何进行健康检查，HEALTHCHECK [OPTIONS]</td>
+</tr>
+<tr>
+<td>SHELL</td>
+<td>指定使用 shell 时的默认 shell 类型</td>
+</tr>
+<tr>
+<td>ENTRYPOINT</td>
+<td>指定镜像的默认入口，每个 Dockerfile 只有一个 ENTRYPOINT 生效</td>
+</tr>
+<tr>
+<td>CMD</td>
+<td>指定启动容器默认执行的命令</td>
+</tr>
+</tbody>
+</table>
+<h2 id="Docker-Compose"><a href="#Docker-Compose" class="headerlink" title="Docker Compose"></a>Docker Compose</h2><p>Compose 负责实现对<strong>容器</strong>集群的快速编排，可以定义和运行多个 Docker 容器的应用。</p>
+<p>Compose 有两个重要的概念</p>
+<ul>
+<li>服务： 一个应用的容器，实际上可以包括若干运行<strong>相同镜像</strong>的容器实例</li>
+<li>项目：由一组关联的应用容器组成的一个完整业务单元，在 docker-compose.yml 文件中定义</li>
+</ul>
+<h3 id="Compose-命令说明"><a href="#Compose-命令说明" class="headerlink" title="Compose 命令说明"></a>Compose 命令说明</h3><p>Compose 有多个子命令，如下</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>build</td>
+<td>构建项目中的服务容器</td>
+</tr>
+<tr>
+<td>help</td>
+<td>获得一个命令的帮助</td>
+</tr>
+<tr>
+<td>kill</td>
+<td>通过发送 SIGKILL 信号来强制停止服务容器</td>
+</tr>
+<tr>
+<td>logs</td>
+<td>查看服务器的输出</td>
+</tr>
+<tr>
+<td>pause</td>
+<td>暂停一个服务容器</td>
+</tr>
+<tr>
+<td>port</td>
+<td>打印某个容器端口所映射的公共端口</td>
+</tr>
+<tr>
+<td>ps</td>
+<td>列出项目中目前的所有容器</td>
+</tr>
+<tr>
+<td>pull</td>
+<td>拉取项目依赖的镜像</td>
+</tr>
+<tr>
+<td>restart</td>
+<td>重启项目中的服务</td>
+</tr>
+<tr>
+<td>rm</td>
+<td>删除所有（停止状态的）服务容器</td>
+</tr>
+<tr>
+<td>run</td>
+<td>在指定服务上执行一个命令</td>
+</tr>
+<tr>
+<td>scale</td>
+<td>设置指定服务运行的容器个数</td>
+</tr>
+<tr>
+<td>start</td>
+<td>启动已经存在的服务容器</td>
+</tr>
+<tr>
+<td>stop</td>
+<td>停止已经处于运行状态的容器。但不删除</td>
+</tr>
+<tr>
+<td>uppause</td>
+<td>恢复处于暂停状态中的服务</td>
+</tr>
+<tr>
+<td><strong>up</strong></td>
+<td>自动完成包括构建镜像，创建服务，启动服务并关联服务相关容器等一系列操作</td>
+</tr>
+<tr>
+<td>migrate-to-labels</td>
+<td>重新创建容器，并添加 label</td>
+</tr>
+<tr>
+<td>version</td>
+<td>打印版本信息</td>
+</tr>
+</tbody>
+</table>
+<h3 id="Compose-模板文件"><a href="#Compose-模板文件" class="headerlink" title="Compose 模板文件"></a>Compose 模板文件</h3><p>模板文件是使用 Compose 的核心，默认的模板文件名称为 docker-compose.yml，YAML格式。 文件由一系列的指定组成，也可以使用变量。</p>
+<p>模板文件指令如下</p>
+<table>
+<thead>
+<tr>
+<th>指令</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>build</td>
+<td>指定服务镜像 Dockerfile 所在路径</td>
+</tr>
+<tr>
+<td>cap_add, cap_drop</td>
+<td>指定容器的内核能力分配</td>
+</tr>
+<tr>
+<td><strong>*command</strong></td>
+<td>覆盖容器启动的默认执行命令</td>
+</tr>
+<tr>
+<td>cgroup_parent</td>
+<td>指定父 cgroup 组，意味着将继承该组的资源限制</td>
+</tr>
+<tr>
+<td>container_name</td>
+<td>指定容器名称</td>
+</tr>
+<tr>
+<td>devices</td>
+<td>指定设备映射关系</td>
+</tr>
+<tr>
+<td>dns</td>
+<td>自定义 DNS 服务器。可以是一个值，也可以是列表</td>
+</tr>
+<tr>
+<td>dns_search</td>
+<td>配置 DNS 搜索域</td>
+</tr>
+<tr>
+<td><strong><em>dockerfile</em></strong></td>
+<td>指定额外编译镜像的 Dockerfile</td>
+</tr>
+<tr>
+<td>env_file</td>
+<td>从文件中获取环境变量</td>
+</tr>
+<tr>
+<td><strong><em>environment</em></strong></td>
+<td>设置环境变量</td>
+</tr>
+<tr>
+<td><strong><em>expose</em></strong></td>
+<td>暴露端口</td>
+</tr>
+<tr>
+<td>extends</td>
+<td>基于其他模板文件进行扩展</td>
+</tr>
+<tr>
+<td>external_links</td>
+<td>链接到 docker-compose.yml 外部的容器</td>
+</tr>
+<tr>
+<td>extra_hosts</td>
+<td>指定额外的 host 名称映射信息</td>
+</tr>
+<tr>
+<td><strong><em>image</em></strong></td>
+<td>指定为容器名称或镜像 ID</td>
+</tr>
+<tr>
+<td>labels</td>
+<td>为容器添加 Docker 元数据信息</td>
+</tr>
+<tr>
+<td>links</td>
+<td>链接到其他服务中的容器</td>
+</tr>
+<tr>
+<td>log_driver</td>
+<td>指定日志驱动类型</td>
+</tr>
+<tr>
+<td>log_opt</td>
+<td>日志驱动的相关参数</td>
+</tr>
+<tr>
+<td><strong><em>net</em></strong></td>
+<td>设置网络模式</td>
+</tr>
+<tr>
+<td>pid</td>
+<td>跟宿主系统共享进程命名空间</td>
+</tr>
+<tr>
+<td>ports</td>
+<td>暴露端口信息</td>
+</tr>
+<tr>
+<td>security_opt</td>
+<td>指定容器模板标签机制的默认属性</td>
+</tr>
+<tr>
+<td>ulimits</td>
+<td>指定容器的 ulimits 限制值</td>
+</tr>
+<tr>
+<td><strong><em>volumes</em></strong></td>
+<td>数据卷所挂载路径设置</td>
+</tr>
+<tr>
+<td>volumes_driver</td>
+<td>数据卷的插件驱动</td>
+</tr>
+<tr>
+<td>volumes_from</td>
+<td>从另一个服务或容器挂载数据卷</td>
+</tr>
+</tbody>
+</table>
+<h3 id="模板文件示例"><a href="#模板文件示例" class="headerlink" title="模板文件示例"></a>模板文件示例</h3><h4 id="示例1-redis-集群——服务-6-个-redis-节点"><a href="#示例1-redis-集群——服务-6-个-redis-节点" class="headerlink" title="示例1 redis 集群——服务 6 个 redis 节点"></a>示例1 redis 集群——服务 6 个 redis 节点</h4><figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="attr">version:</span> <span class="string">'3.4'</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义变量</span></span><br><span class="line"><span class="attr">x-image:</span></span><br><span class="line"> <span class="string">&amp;default-image</span></span><br><span class="line"> <span class="string">publicisworldwide/redis-cluster</span></span><br><span class="line"><span class="attr">x-restart:</span></span><br><span class="line"> <span class="string">&amp;default-restart</span></span><br><span class="line"> <span class="string">always</span></span><br><span class="line"><span class="attr">x-netmode:</span></span><br><span class="line"> <span class="string">&amp;default-netmode</span></span><br><span class="line"> <span class="string">host</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义服务</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line"> <span class="comment"># 项目1</span></span><br><span class="line"><span class="attr"> redis1:</span></span><br><span class="line">  <span class="comment"># 基础镜像</span></span><br><span class="line"><span class="attr">  image:</span> <span class="string">*default-image</span></span><br><span class="line">  <span class="comment"># 网络模式</span></span><br><span class="line"><span class="attr">  network_mode:</span> <span class="string">*default-netmode</span></span><br><span class="line"><span class="attr">  restart:</span> <span class="string">*default-restart</span></span><br><span class="line">  <span class="comment"># 数据卷</span></span><br><span class="line"><span class="attr">  volumes:</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">/data/redis/7001/data:/data</span></span><br><span class="line">  <span class="comment"># redis 服务端口</span></span><br><span class="line"><span class="attr">  environment:</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">REDIS_PORT=7001</span></span><br><span class="line"></span><br><span class="line"><span class="attr"> redis2:</span></span><br><span class="line"><span class="attr">  image:</span> <span class="string">*default-image</span></span><br><span class="line"><span class="attr">  network_mode:</span> <span class="string">*default-netmode</span></span><br><span class="line"><span class="attr">  restart:</span> <span class="string">*default-restart</span></span><br><span class="line"><span class="attr">  volumes:</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">/data/redis/7002/data:/data</span></span><br><span class="line"><span class="attr">  environment:</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">REDIS_PORT=7002</span></span><br><span class="line"></span><br><span class="line"><span class="attr"> redis3:</span></span><br><span class="line"><span class="attr">  image:</span> <span class="string">*default-image</span></span><br><span class="line"><span class="attr">  network_mode:</span> <span class="string">*default-netmode</span></span><br><span class="line"><span class="attr">  restart:</span> <span class="string">*default-restart</span></span><br><span class="line"><span class="attr">  volumes:</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">/data/redis/7003/data:/data</span></span><br><span class="line"><span class="attr">  environment:</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">REDIS_PORT=7003</span></span><br><span class="line"></span><br><span class="line"><span class="attr"> redis4:</span></span><br><span class="line"><span class="attr">  image:</span> <span class="string">*default-image</span></span><br><span class="line"><span class="attr">  network_mode:</span> <span class="string">*default-netmode</span></span><br><span class="line"><span class="attr">  restart:</span> <span class="string">*default-restart</span></span><br><span class="line"><span class="attr">  volumes:</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">/data/redis/7004/data:/data</span></span><br><span class="line"><span class="attr">  environment:</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">REDIS_PORT=7004</span></span><br><span class="line"></span><br><span class="line"><span class="attr"> redis5:</span></span><br><span class="line"><span class="attr">  image:</span> <span class="string">*default-image</span></span><br><span class="line"><span class="attr">  network_mode:</span> <span class="string">*default-netmode</span></span><br><span class="line"><span class="attr">  restart:</span> <span class="string">*default-restart</span></span><br><span class="line"><span class="attr">  volumes:</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">/data/redis/7005/data:/data</span></span><br><span class="line"><span class="attr">  environment:</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">REDIS_PORT=7005</span></span><br><span class="line"></span><br><span class="line"><span class="attr"> redis6:</span></span><br><span class="line"><span class="attr">  image:</span> <span class="string">*default-image</span></span><br><span class="line"><span class="attr">  network_mode:</span> <span class="string">*default-netmode</span></span><br><span class="line"><span class="attr">  restart:</span> <span class="string">*default-restart</span></span><br><span class="line"><span class="attr">  volumes:</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">/data/redis/7006/data:/data</span></span><br><span class="line"><span class="attr">  environment:</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">REDIS_PORT=7006</span></span><br></pre></td></tr></table></figure>
+<h4 id="示例2，-spark"><a href="#示例2，-spark" class="headerlink" title="示例2， spark"></a>示例2， spark</h4><figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment"># 服务 1， 安装 spark master</span></span><br><span class="line"><span class="attr">master:</span></span><br><span class="line"><span class="attr">  image:</span> <span class="string">sequenceiq/spark:1.4.0</span></span><br><span class="line"><span class="attr">  hostname:</span> <span class="string">master</span></span><br><span class="line"><span class="attr">  ports:</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">"4040:4040"</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">"8042:8042"</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">"7077:7077"</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">"8088:8088"</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">"8080:8080"</span></span><br><span class="line"><span class="attr">  restart:</span> <span class="string">always</span></span><br><span class="line">  <span class="comment"># 容器运行的命令，即启动 spark master</span></span><br><span class="line"><span class="attr">  command:</span> <span class="string">bash</span> <span class="string">/usr/local/spark/sbin/start-master.sh</span> <span class="string">&amp;&amp;</span> <span class="string">ping</span> <span class="string">localhost</span> <span class="string">&gt; /dev/null</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"></span><span class="attr">worker:</span></span><br><span class="line"><span class="attr">  image:</span> <span class="string">sequenceiq/spark:1.4.0</span></span><br><span class="line"><span class="attr">  links:</span></span><br><span class="line"><span class="attr">  - master:</span><span class="string">master</span></span><br><span class="line"><span class="attr">  expose:</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">"8081"</span></span><br><span class="line"><span class="attr">  restart:</span> <span class="string">always</span></span><br><span class="line"><span class="attr">  command:</span> <span class="string">bash</span> <span class="string">/usr/local/spark/sbin/start-slave.sh</span> <span class="attr">spark://master:7077</span> <span class="string">&amp;&amp;</span> <span class="string">ping</span> <span class="string">localhost</span> <span class="string">&gt; /dev/null</span></span><br></pre></td></tr></table></figure>
+<p>用 docker-compose up 可以启动<br>服务起来后， 可以用 docker-compose scale worker=2 来动态扩展 worker 节点数</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        
+          
+        
+        <div class="post-tags">
+          
+            <a href="/tags/docker/" rel="tag"># docker</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/08/06/docker-network/" rel="next" title="【docker】 Docker 网络">
+                <i class="fa fa-chevron-left"></i> 【docker】 Docker 网络
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/09/11/linux-makefile-to-vs-project/" rel="prev" title="将 Linux Makefile 工程转换成 VS 工程">
+                将 Linux Makefile 工程转换成 VS 工程 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Deer</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">25</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">7</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Dockerfile"><span class="nav-number">1.</span> <span class="nav-text">Dockerfile</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本结构"><span class="nav-number">1.1.</span> <span class="nav-text">基本结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dockerfile-指令说明"><span class="nav-number">1.2.</span> <span class="nav-text">Dockerfile 指令说明</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Docker-Compose"><span class="nav-number">2.</span> <span class="nav-text">Docker Compose</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Compose-命令说明"><span class="nav-number">2.1.</span> <span class="nav-text">Compose 命令说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Compose-模板文件"><span class="nav-number">2.2.</span> <span class="nav-text">Compose 模板文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#模板文件示例"><span class="nav-number">2.3.</span> <span class="nav-text">模板文件示例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#示例1-redis-集群——服务-6-个-redis-节点"><span class="nav-number">2.3.1.</span> <span class="nav-text">示例1 redis 集群——服务 6 个 redis 节点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#示例2，-spark"><span class="nav-number">2.3.2.</span> <span class="nav-text">示例2， spark</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Deer</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.1.2</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/utils.js?v=7.1.2"></script>
+
+  <script src="/js/motion.js?v=7.1.2"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/affix.js?v=7.1.2"></script>
+
+  <script src="/js/schemes/pisces.js?v=7.1.2"></script>
+
+
+
+
+  
+  <script src="/js/scrollspy.js?v=7.1.2"></script>
+<script src="/js/post-details.js?v=7.1.2"></script>
+
+
+
+  
+
+
+  <script src="/js/next-boot.js?v=7.1.2"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -141,7 +141,7 @@
 <meta property="og:image" content="http://yoursite.com/2018/05/04/tcp-base/TCP%204%20次挥手.png">
 <meta property="og:image" content="http://yoursite.com/2018/05/04/tcp-base/TCP-缓冲区.jpg">
 <meta property="og:image" content="http://yoursite.com/2018/05/04/tcp-base/示例.png">
-<meta property="og:updated_time" content="2019-06-15T13:14:34.519Z">
+<meta property="og:updated_time" content="2019-09-23T13:24:18.428Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="TCP 协议基础">
 <meta name="twitter:description" content="描述一些 TCP 基本特性">
@@ -543,7 +543,7 @@
 <p> RFC793 中说，ISN 会和一个假的时钟绑在一起，这个时钟会在每 4 微秒对 ISN 做加一操作，直到超过 2^32，又从 0 开始。这样，一个 ISN 的周期大约是 4.55 个小时。因为，我们假设我们的 TCP Segment 在网络上的存活时间不会超过 Maximum Segment Lifetime（缩写为MSL – Wikipedia语条），所以，只要 MSL 的值小于 4.55 小时，那么就不会重用到 ISN</p>
 </li>
 <li><p>为什么不用两次？<br>要是为了防止已经失效的连接请求报文突然又传送到了服务器，从而产生错误。  </p>
-<p> 假设是两次握手建立连接，会有这样一种场景：客户端发送的第一个请求连接并且没有丢失，只是因为在网络中滞留的时间太长了，由于客户端迟迟没有收到确认报文，以为服务器没有收到，此时重新向服务器发送这条报文，此后客户端和服务器经过两次握手完成连接，传输数据，然后关闭连接。此时之前滞留的那一次请求连接，因为网络通畅了, 到达了服务器，这个报文本该是失效的，但是，两次握手的机制将会让客户端和服务器再次建立连接，这将导致不必要的错误和资源的浪费。    </p>
+<p> 假设是两次握手建立连接，会有这样一种场景：客户端发送的第一个请求连接并且没有丢失，只是因为在网络中滞留的时间太长了，由于客户端迟迟没有收到确认报文，以为服务器没有收到，此时重新向服务器发送这条报文，此后客户端和服务器经过两次握手完成连接，传输数据，然后关闭连接。此时之前滞留的那一次请求连接，因为网络通畅了, 到达了服务器，这个报文本该是失效的，但是，两次握手的机制将会让客户端和服务器再次建立连接，这将导致不必要的错误和资源的浪费。</p>
 <p> <strong><em>问题的本质是信道不可靠</em></strong>, 但是通信双方需要就某个问题达成一致。而要解决这个问题, 无论你在消息中包含什么信息, 三次通信是理论上的最小值。所以三次握手不是TCP本身的要求, 而是为了满足“在不可靠信道上可靠地传输信息”这一需求所导致的。本质需求是，信道不可靠, 数据传输要可靠。因此，如果信道是可靠的，即无论什么时候发出消息，对方一定能收到, 或者不关心是否要保证对方收到你的消息，那就能像UDP那样直接发送消息就可以了。</p>
 </li>
 <li><p>为什么不用四次<br>因为三次已经可以满足需要了, 四次就多余了</p>
@@ -747,7 +747,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">20</span>
+                    <span class="site-state-item-count">25</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -774,7 +774,13 @@
                     
                       
                     
-                    <span class="site-state-item-count">4</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">7</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
