@@ -135,7 +135,7 @@
 <meta property="og:description" content="本文介绍 docker 的网络模式">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/2019/08/06/docker-network/docker_network.png">
-<meta property="og:updated_time" content="2019-09-16T16:30:39.158Z">
+<meta property="og:updated_time" content="2019-09-30T13:28:25.759Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="【docker】 Docker 网络">
 <meta name="twitter:description" content="本文介绍 docker 的网络模式">
@@ -437,18 +437,14 @@
         <p>本文介绍 docker 的网络模式</p>
 <a id="more"></a>
 <p>docker 使用 linux 的 Namespaces 技术来进行资源隔离，其中网络使用 Network Namespace 来进行网络隔离。一个 Network Namespace 提供了一份独立的网络环境，包括网卡、路由、Iptable规则等都与其他的 Network Namespace 隔离。</p>
-<h1 id="docker-网络模式"><a href="#docker-网络模式" class="headerlink" title="docker 网络模式"></a>docker 网络模式</h1><p>在使用 docker run 创建容器时，可以用 –net 选项指定容器的网络模式，有如下几种模式</p>
+<h2 id="docker-网络模式"><a href="#docker-网络模式" class="headerlink" title="docker 网络模式"></a>docker 网络模式</h2><p>在使用 docker run 创建容器时，可以用 –net 选项指定容器的网络模式，有如下几种模式</p>
 <ol>
 <li><p>host 模式<br>–net=host</p>
 <p>容器不使用独立的 Network Namespace，而是和宿主机共用一个Network Namespace。容器将不会虚拟出自己的网卡，配置自己的IP等，而是使用宿主机的IP和端口。容器的其他方面，如文件系统、进程列表等还是和宿主机隔离的</p>
 <p>例如，在 10.10.101.105/24 的机器上用 host 模式启动一个含有 web 应用的 docker 容器，监听 tcp80 端口。在容器中执行任何类似 ifconfig 命令查看网络环境时，看到的都是宿主机上的信息。而外界访问容器中的应用，则直接使用10.10.101.105:80即可，不用任何NAT转换，就如直接跑在宿主机中一样。</p>
 </li>
-</ol>
-<ol start="2">
 <li><p>container 模式<br>–net=${CONTAINER}</p>
-<p>指定新创建的容器和已经存在的一个容器共享一个 Network Namespace，而不是和宿主机共享。</p>
-<p>新创建的容器不会创建自己的网卡，配置自己的 IP，而是和一个指定的容器共享 IP、端口范围等。</p>
-<p>两个容器除了网络方面，其他的如文件系统、进程列表等还是隔离的，两个容器的进程可以通过 lo 网卡设备通信。</p>
+<p>指定新创建的容器和已经存在的一个容器共享一个 Network Namespace，而不是和宿主机共享。<br>新创建的容器不会创建自己的网卡，配置自己的 IP，而是和一个指定的容器共享 IP、端口范围等。<br>两个容器除了网络方面，其他的如文件系统、进程列表等还是隔离的，两个容器的进程可以通过 lo 网卡设备通信。</p>
 </li>
 <li><p>none 模式<br>–net=none</p>
 <p>在这种模式下，docker 容器拥有自己的 Network Namespace，但是并不为 docker 容器进行任何网络配置。</p>
@@ -461,7 +457,7 @@
 <p>使用用户自定义的网络模式</p>
 </li>
 </ol>
-<h1 id="bridge-模式的拓扑"><a href="#bridge-模式的拓扑" class="headerlink" title="bridge 模式的拓扑"></a>bridge 模式的拓扑</h1><p>当 docker 服务启动时，会在宿主上创建一个 docker0 虚拟网桥，在此宿主上启动的容器会连接到这个虚拟网桥上。虚拟网桥的工作方式和物理交换机类似，这样宿主上的所有容器就通过交换机连在了一个二层网络中，如下图。</p>
+<h2 id="bridge-模式的拓扑"><a href="#bridge-模式的拓扑" class="headerlink" title="bridge 模式的拓扑"></a>bridge 模式的拓扑</h2><p>当 docker 服务启动时，会在宿主上创建一个 docker0 虚拟网桥，在此宿主上启动的容器会连接到这个虚拟网桥上。虚拟网桥的工作方式和物理交换机类似，这样宿主上的所有容器就通过交换机连在了一个二层网络中，如下图。</p>
 <p><img src="/2019/08/06/docker-network/docker_network.png" alt="docker bridge 模式拓扑"></p>
 <p>容器创建时， docker 为会从 RFC1918 所定义的私有 IP 网段中，选择一个和宿主不同的 IP 地址和子网分配给 docker0，连接到 docker0 的容器就从这个子网中选择一个未占用的IP使用。</p>
 <p>docker 完成以上网络配置需要才下几步：</p>
@@ -470,23 +466,24 @@
 <li>docker 将veth pair设备的一端放在新创建的容器中，并命名为eth0；另一端放在主机中，以 veth65f9 这样类似的名字命名，并将这个网络设备加入到 docker0 网桥中</li>
 <li>从 docker0 子网中分配一个 IP 给容器使用，并设置 docker0 的 IP 地址为容器的默认网关</li>
 </ol>
-<h1 id="自定义网络"><a href="#自定义网络" class="headerlink" title="自定义网络"></a>自定义网络</h1><p>docker 的 network 子命令可以设置网络相关的配置</p>
+<h2 id="自定义网络"><a href="#自定义网络" class="headerlink" title="自定义网络"></a>自定义网络</h2><p>docker 的 network 子命令可以设置网络相关的配置</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 列出所有的网络</span></span><br><span class="line">docker network ls</span><br></pre></td></tr></table></figure>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建一个网络</span></span><br><span class="line">docker network create</span><br></pre></td></tr></table></figure>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 删除一个网络</span></span><br><span class="line">docker network rm</span><br></pre></td></tr></table></figure>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 把容器接入到指定网络</span></span><br><span class="line">docker network connect</span><br></pre></td></tr></table></figure>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 把容器从网络卸载下来</span></span><br><span class="line">docker network disconnect</span><br></pre></td></tr></table></figure>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看网络的详细信息</span></span><br><span class="line">docker network inspect</span><br></pre></td></tr></table></figure>
-<h1 id="各种网络场景（示例）"><a href="#各种网络场景（示例）" class="headerlink" title="各种网络场景（示例）"></a>各种网络场景（示例）</h1><h2 id="宿主外部访问容器"><a href="#宿主外部访问容器" class="headerlink" title="宿主外部访问容器"></a>宿主外部访问容器</h2><p>一般宿主外部不需要直接访问容器，而是通过 run 命令的 -p 选项将容器的端口映射到宿主的端口。宿主外部通过这个端口访问容器的服务。</p>
-<h2 id="容器访问宿主外部"><a href="#容器访问宿主外部" class="headerlink" title="容器访问宿主外部"></a>容器访问宿主外部</h2><p>容器可以直接通过宿主的网桥访问宿主外部网络</p>
-<h2 id="同一宿主下多个容器组网"><a href="#同一宿主下多个容器组网" class="headerlink" title="同一宿主下多个容器组网"></a>同一宿主下多个容器组网</h2><p>使用同一个 bridge 下的容器就是在同一个子网中，容器可以互相联通。但如果不是同一个 bridge 下的容器，默认情况下是不互通的。</p>
+<h2 id="各种网络场景（示例）"><a href="#各种网络场景（示例）" class="headerlink" title="各种网络场景（示例）"></a>各种网络场景（示例）</h2><h3 id="宿主外部访问容器"><a href="#宿主外部访问容器" class="headerlink" title="宿主外部访问容器"></a>宿主外部访问容器</h3><p>一般宿主外部不需要直接访问容器，而是通过 run 命令的 -p 选项将容器的端口映射到宿主的端口。宿主外部通过这个端口访问容器的服务。</p>
+<h3 id="容器访问宿主外部"><a href="#容器访问宿主外部" class="headerlink" title="容器访问宿主外部"></a>容器访问宿主外部</h3><p>容器可以直接通过宿主的网桥访问宿主外部网络</p>
+<h3 id="同一宿主下多个容器组网"><a href="#同一宿主下多个容器组网" class="headerlink" title="同一宿主下多个容器组网"></a>同一宿主下多个容器组网</h3><p>使用同一个 bridge 下的容器就是在同一个子网中，容器可以互相联通。但如果不是同一个 bridge 下的容器，默认情况下是不互通的。</p>
 <p>创建容器时，可以用 run 命令的 –hostname 选项和 –ip 选项指定容器的 hostname 和 ip<br>同时可以用 –add-host ${hostname}:${ip} 将条目加入到 /etc/hosts 文件中（只有用户定义的网络可以使用）</p>
-<h2 id="跨宿主容器网络"><a href="#跨宿主容器网络" class="headerlink" title="跨宿主容器网络"></a>跨宿主容器网络</h2><ol>
+<h3 id="跨宿主容器网络"><a href="#跨宿主容器网络" class="headerlink" title="跨宿主容器网络"></a>跨宿主容器网络</h3><ol>
 <li>启动两台 docker 宿主 n1 和 n2，分别安装好 docker-engine 并确保两台宿主之间可以通过 IP 互相访问</li>
-<li><p>在任务节点上创建网络 multi，例如在 n1 上执行</p>
+<li>在任务节点上创建网络 multi，例如在 n1 上执行</li>
+</ol>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network create -d overlay multi</span><br></pre></td></tr></table></figure>
-<p>创建成功后，在 n1 和 n2 上都可以用 docker network ls 看到 multi 的网络信息</p>
-</li>
+<p>  创建成功后，在 n1 和 n2 上都可以用 docker network ls 看到 multi 的网络信息</p>
+<ol start="3">
 <li>在 n1 上创建容器 c1， 在 n2 上创建容器 c2，分别用 –net mulit 指定连接到 multi 网络。通过 ping 可以测试出 c1 可以 ping 通 c2</li>
 </ol>
 
@@ -609,7 +606,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">25</span>
+                    <span class="site-state-item-count">27</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -642,7 +639,11 @@
                     
                       
                     
-                    <span class="site-state-item-count">7</span>
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">9</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -680,7 +681,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#docker-网络模式"><span class="nav-number">1.</span> <span class="nav-text">docker 网络模式</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#bridge-模式的拓扑"><span class="nav-number">2.</span> <span class="nav-text">bridge 模式的拓扑</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#自定义网络"><span class="nav-number">3.</span> <span class="nav-text">自定义网络</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#各种网络场景（示例）"><span class="nav-number">4.</span> <span class="nav-text">各种网络场景（示例）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#宿主外部访问容器"><span class="nav-number">4.1.</span> <span class="nav-text">宿主外部访问容器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#容器访问宿主外部"><span class="nav-number">4.2.</span> <span class="nav-text">容器访问宿主外部</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#同一宿主下多个容器组网"><span class="nav-number">4.3.</span> <span class="nav-text">同一宿主下多个容器组网</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#跨宿主容器网络"><span class="nav-number">4.4.</span> <span class="nav-text">跨宿主容器网络</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#docker-网络模式"><span class="nav-number">1.</span> <span class="nav-text">docker 网络模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bridge-模式的拓扑"><span class="nav-number">2.</span> <span class="nav-text">bridge 模式的拓扑</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自定义网络"><span class="nav-number">3.</span> <span class="nav-text">自定义网络</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#各种网络场景（示例）"><span class="nav-number">4.</span> <span class="nav-text">各种网络场景（示例）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#宿主外部访问容器"><span class="nav-number">4.1.</span> <span class="nav-text">宿主外部访问容器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#容器访问宿主外部"><span class="nav-number">4.2.</span> <span class="nav-text">容器访问宿主外部</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#同一宿主下多个容器组网"><span class="nav-number">4.3.</span> <span class="nav-text">同一宿主下多个容器组网</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#跨宿主容器网络"><span class="nav-number">4.4.</span> <span class="nav-text">跨宿主容器网络</span></a></li></ol></li></ol></div>
             
 
           </div>

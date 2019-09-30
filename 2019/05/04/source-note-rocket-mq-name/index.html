@@ -127,14 +127,14 @@
 
 
   <meta name="description" content="简单描述 namesrv 保存的信息">
-<meta name="keywords" content="rocketmq">
+<meta name="keywords" content="阅读笔记,rocketmq">
 <meta property="og:type" content="article">
 <meta property="og:title" content="【阅读笔记】rocketmq 命名服务 namesrv （三）">
 <meta property="og:url" content="http://yoursite.com/2019/05/04/source-note-rocket-mq-name/index.html">
 <meta property="og:site_name" content="Deer&#39;s blog">
 <meta property="og:description" content="简单描述 namesrv 保存的信息">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-06-23T12:21:59.728Z">
+<meta property="og:updated_time" content="2019-09-30T13:29:14.710Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="【阅读笔记】rocketmq 命名服务 namesrv （三）">
 <meta name="twitter:description" content="简单描述 namesrv 保存的信息">
@@ -434,7 +434,7 @@
       
         <p>简单描述 namesrv 保存的信息</p>
 <a id="more"></a>
-<h1 id="基本功能"><a href="#基本功能" class="headerlink" title="基本功能"></a>基本功能</h1><ol>
+<h2 id="基本功能"><a href="#基本功能" class="headerlink" title="基本功能"></a>基本功能</h2><ol>
 <li><p>生产者、消费者从 namesrv 中获取可用的 broker 地址（查询功能）</p>
 </li>
 <li><p>broker 定时向 naemsrv 发送心跳信息，维护可用 broker 地址（更新信息）</p>
@@ -443,30 +443,33 @@
 </li>
 </ol>
 <p>namesrv 的功能比较简单，就是保存信息。多个 namesrv 实例组成集群，但相互独立，没有信息交换</p>
-<h1 id="功能实现"><a href="#功能实现" class="headerlink" title="功能实现"></a>功能实现</h1><h2 id="KVConfig"><a href="#KVConfig" class="headerlink" title="KVConfig"></a>KVConfig</h2><p>KVConfig 保存 key-value 配置，核心的数据结构是 KVConfigManager。 KVConfigManager 的主要成员有</p>
+<h2 id="功能实现"><a href="#功能实现" class="headerlink" title="功能实现"></a>功能实现</h2><h3 id="KVConfig"><a href="#KVConfig" class="headerlink" title="KVConfig"></a>KVConfig</h3><p>KVConfig 保存 key-value 配置，核心的数据结构是 KVConfigManager。 KVConfigManager 的主要成员有</p>
 <ul>
 <li>ReadWriteLock lock：一个读写锁，保护 configTable 成员</li>
 <li>HashMap&lt;String, HashMap&lt;String, String&gt;&gt; configTable：一个二维的散列表，第一个 key 是 Namespace，第二个 key 是 Key，之后是 value</li>
 </ul>
 <p>KVConfigManager 的数据可以写到磁盘并从磁盘加载</p>
-<h2 id="保存-broker-信息"><a href="#保存-broker-信息" class="headerlink" title="保存 broker 信息"></a>保存 broker 信息</h2><p>broker 信息由 RouteInfoManager 类管理</p>
+<h3 id="保存-broker-信息"><a href="#保存-broker-信息" class="headerlink" title="保存 broker 信息"></a>保存 broker 信息</h3><p>broker 信息由 RouteInfoManager 类管理</p>
 <p>RouteInfoManager 有 5 个表，分别保存 5 类重要的数据，所有数据都由一个读写锁保护</p>
 <ol>
-<li><p>HashMap&lt;String, List<queuedata>&gt; topicQueueTable<br>保存 topic 信息，key 是 topic 名，QueueData 包含了队列信息。</queuedata></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">QueueData</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> String brokerName; <span class="comment">// broker 名字</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> readQueueNums;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> writeQueueNums;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> perm;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> topicSynFlag;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<li><p>topicQueueTable<br>保存 topic 信息，key 是 topic 名，QueueData 包含了队列信息。</p>
+ <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">HashMap&lt;String, List&lt;QueueData&gt;&gt; topicQueueTable;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">QueueData</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> String brokerName; <span class="comment">// broker 名字</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> readQueueNums;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> writeQueueNums;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> perm;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> topicSynFlag;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
-<li><p>HashMap&lt;String, BrokerData&gt; brokerAddrTable<br>保存 broker 信息，key 是 broker name，BrokerData 包含了 broker 信息</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BrokerData</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> String cluster;     <span class="comment">// broker 所在集群名</span></span><br><span class="line">  <span class="keyword">private</span> String brokerName;  <span class="comment">// broker 名字</span></span><br><span class="line">  <span class="keyword">private</span> HashMap&lt;Long<span class="comment">/* brokerId */</span>, String<span class="comment">/* broker address */</span>&gt; brokerAddrs;  <span class="comment">// broker 地址（包括主从）</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<li><p>brokerAddrTable<br>保存 broker 信息，key 是 broker name，BrokerData 包含了 broker 信息</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">HashMap&lt;String, BrokerData&gt; brokerAddrTable;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BrokerData</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> String cluster;     <span class="comment">// broker 所在集群名</span></span><br><span class="line">  <span class="keyword">private</span> String brokerName;  <span class="comment">// broker 名字</span></span><br><span class="line">  <span class="keyword">private</span> HashMap&lt;Long<span class="comment">/* brokerId */</span>, String<span class="comment">/* broker address */</span>&gt; brokerAddrs;  <span class="comment">// broker 地址（包括主从）</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
-<li><p>HashMap&lt;String, Set<string>&gt; clusterAddrTable<br>保存 broker 集群信息，key 是集群名， set 保存了 broker namesrv</string></p>
+<li><p>clusterAddrTable<br>保存 broker 集群信息，key 是集群名， set 保存了 broker namesrv</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">HashMap&lt;String, Set&lt;String&gt;&gt; clusterAddrTable;</span><br></pre></td></tr></table></figure>
 </li>
-<li><p>HashMap&lt;String, BrokerLiveInfo&gt; brokerLiveTable<br>保存 broker 的存活信息，key 是 broker 的地址</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BrokerLiveInfo</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">long</span> lastUpdateTimestamp; <span class="comment">// 最后更新时间</span></span><br><span class="line">  <span class="keyword">private</span> DataVersion dataVersion;  <span class="comment">// 数据版本号</span></span><br><span class="line">  <span class="keyword">private</span> Channel channel; <span class="comment">// 用于通信的 channel</span></span><br><span class="line">  <span class="keyword">private</span> String haServerAddr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<li><p>brokerLiveTable<br>保存 broker 的存活信息，key 是 broker 的地址</p>
+ <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">HashMap&lt;String, BrokerLiveInfo&gt; brokerLiveTable;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BrokerLiveInfo</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">long</span> lastUpdateTimestamp; <span class="comment">// 最后更新时间</span></span><br><span class="line">  <span class="keyword">private</span> DataVersion dataVersion;  <span class="comment">// 数据版本号</span></span><br><span class="line">  <span class="keyword">private</span> Channel channel; <span class="comment">// 用于通信的 channel</span></span><br><span class="line">  <span class="keyword">private</span> String haServerAddr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
-<li><p>HashMap&lt;String, List<string>&gt; filterServerTable<br>保存 filter server，key 是 broker 的地址，list 里是 filter server<br>filter server 在 4.3.0 删除了</string></p>
+<li><p>filterServerTable<br>保存 filter server，key 是 broker 的地址，list 里是 filter server</p>
+ <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">HashMap&lt;String, List&lt;String&gt;&gt; filterServerTable</span><br></pre></td></tr></table></figure>
+<p>注：filter server 在 4.3.0 删除了</p>
 </li>
 </ol>
-<h2 id="broker-注册"><a href="#broker-注册" class="headerlink" title="broker 注册"></a>broker 注册</h2><p>broker 发送 REGISTER_BROKER 命令时，会带来brokerName、brokerAddr、clusterName、haServerAddr、brokerId 以及 topic 信息。这些信息会保存到 RouteInfoManager 中</p>
+<h3 id="broker-注册"><a href="#broker-注册" class="headerlink" title="broker 注册"></a>broker 注册</h3><p>broker 发送 REGISTER_BROKER 命令时，会带来brokerName、brokerAddr、clusterName、haServerAddr、brokerId 以及 topic 信息。这些信息会保存到 RouteInfoManager 中</p>
 <p>注册过程如下：</p>
 <ol>
 <li>上锁</li>
@@ -478,9 +481,9 @@
 <li>解锁</li>
 </ol>
 <p>REGISTER_BROKER 命令的返回结果里会包含这组 broker 的 master 地址以及 master 的 HA 地址</p>
-<h2 id="Broker-存活检查"><a href="#Broker-存活检查" class="headerlink" title="Broker 存活检查"></a>Broker 存活检查</h2><p>存活检查有两种方法</p>
+<h3 id="Broker-存活检查"><a href="#Broker-存活检查" class="headerlink" title="Broker 存活检查"></a>Broker 存活检查</h3><p>存活检查有两种方法</p>
 <ol>
-<li><p>NamesrvController 有个线程定期（10秒）调用 routeInfoManager.scanNotActiveBroker()，检查brokerLiveTable 中的 lastUpdateTimestamp。<br>如果 lastUpdateTimestamp + BROKER_CHANNEL_EXPIRED_TIME （2分钟）&lt; 当前时间，则认为这个 broker 已经不再存活，并将之从 brokerLiveTable 删除。而 broker 周期性发送 REGISTER_BROKER 命令到 namesrv，namesrv 这时会更新 lastUpdateTimestamp</p>
+<li><p>NamesrvController 有个线程定期（10秒）调用 routeInfoManager.scanNotActiveBroker()，检查brokerLiveTable 中的 lastUpdateTimestamp。<br> 如果 lastUpdateTimestamp + BROKER_CHANNEL_EXPIRED_TIME （2分钟）&lt; 当前时间，则认为这个 broker 已经不再存活，并将之从 brokerLiveTable 删除。而 broker 周期性发送 REGISTER_BROKER 命令到 namesrv，namesrv 这时会更新 lastUpdateTimestamp</p>
 </li>
 <li><p>BrokerHousekeepingService 侦听 Channel 事件，如果发生 close，exception, idle 等事件，也认为 broker 不再存活</p>
 </li>
@@ -510,6 +513,8 @@
           
         
         <div class="post-tags">
+          
+            <a href="/tags/阅读笔记/" rel="tag"># 阅读笔记</a>
           
             <a href="/tags/rocketmq/" rel="tag"># rocketmq</a>
           
@@ -605,7 +610,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">25</span>
+                    <span class="site-state-item-count">27</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -638,7 +643,11 @@
                     
                       
                     
-                    <span class="site-state-item-count">7</span>
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">9</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -676,7 +685,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#基本功能"><span class="nav-number">1.</span> <span class="nav-text">基本功能</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#功能实现"><span class="nav-number">2.</span> <span class="nav-text">功能实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#KVConfig"><span class="nav-number">2.1.</span> <span class="nav-text">KVConfig</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#保存-broker-信息"><span class="nav-number">2.2.</span> <span class="nav-text">保存 broker 信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#broker-注册"><span class="nav-number">2.3.</span> <span class="nav-text">broker 注册</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Broker-存活检查"><span class="nav-number">2.4.</span> <span class="nav-text">Broker 存活检查</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本功能"><span class="nav-number">1.</span> <span class="nav-text">基本功能</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#功能实现"><span class="nav-number">2.</span> <span class="nav-text">功能实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#KVConfig"><span class="nav-number">2.1.</span> <span class="nav-text">KVConfig</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#保存-broker-信息"><span class="nav-number">2.2.</span> <span class="nav-text">保存 broker 信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#broker-注册"><span class="nav-number">2.3.</span> <span class="nav-text">broker 注册</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Broker-存活检查"><span class="nav-number">2.4.</span> <span class="nav-text">Broker 存活检查</span></a></li></ol></li></ol></div>
             
 
           </div>

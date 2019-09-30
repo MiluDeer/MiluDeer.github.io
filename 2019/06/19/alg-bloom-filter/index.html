@@ -134,7 +134,7 @@
 <meta property="og:site_name" content="Deer&#39;s blog">
 <meta property="og:description" content="描述布隆过滤器的功能和实现">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-09-18T14:42:20.705Z">
+<meta property="og:updated_time" content="2019-09-30T13:42:21.511Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="【算法】 布隆过滤器（BloomFilters）">
 <meta name="twitter:description" content="描述布隆过滤器的功能和实现">
@@ -434,12 +434,12 @@
       
         <p>描述布隆过滤器的功能和实现</p>
 <a id="more"></a>
-<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>为了判断一个元素是否在一个集合里，通常的做法是用 List， Set， HashMap 等容器保存集合的元素，然后在判断元素是否在集合里。然而当数据量<strong>非常大</strong>时，内存可能无法保存所有的元素集合。这时可以考虑用布隆过滤器实现。</p>
-<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><p>布隆过滤器使用一个 bit 向量或者说 bit 数组实现， 它先将集合的元素散列到 bit 数组上。 当要判断元素是否在集合里时，先计算元素的散列值，如果散列值不在 bit 数组上，则该元素<strong>一定</strong>不在集合里，如果散列值在 bit 数组上，则该元素<strong>可能</strong>会在集合里。</p>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>为了判断一个元素是否在一个集合里，通常的做法是用 List， Set， HashMap 等容器保存集合的元素，然后在判断元素是否在集合里。然而当数据量<strong>非常大</strong>时，内存可能无法保存所有的元素集合。这时可以考虑用布隆过滤器实现。</p>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><p>布隆过滤器使用一个 bit 向量或者说 bit 数组实现， 它先将集合的元素散列到 bit 数组上。 当要判断元素是否在集合里时，先计算元素的散列值，如果散列值不在 bit 数组上，则该元素<strong>一定</strong>不在集合里，如果散列值在 bit 数组上，则该元素<strong>可能</strong>会在集合里。</p>
 <p>要实现一个布隆过滤器，首先要选择适当的 bit 数组长度，然后选择多个散列函数。对于每个要加入到集合的元素，用各个散列函数分别计算出散列值，然后 bit 数组对应的下标置 1。 例如考虑一个长度是 8 的 bit 数组用于过滤域名。对于 “baidu”，有 3 个不同的散列函数，计算出来的散列值分别是 1，4 ，7，则 bit[1], bit[4], bit[7] 分别置为 1， 对于“google”，散列值分别是 2，4，5，则 bit[1]，bit[4]，bit[5] 分别置为 1。</p>
 <p>要测试“yahoo”是否在集合里时，可以计算“yahoo”的散列值，如果是 1，2，7（即不是所有散列值都在 bit 数组），则说明这个元素不在集合里，反之则有可能在集合里</p>
 <p><a href="https://www.jasondavies.com/bloomfilter/?spm=a2c4e.11153940.blogcont683602.11.21181fe6hVAGjH" target="_blank" rel="noopener">布隆过滤器演示</a></p>
-<h1 id="布隆过滤器特点"><a href="#布隆过滤器特点" class="headerlink" title="布隆过滤器特点"></a>布隆过滤器特点</h1><ul>
+<h2 id="布隆过滤器特点"><a href="#布隆过滤器特点" class="headerlink" title="布隆过滤器特点"></a>布隆过滤器特点</h2><ul>
 <li><p>节省空间<br>布隆过滤器不需要存储数据本身，只需要保存 bit</p>
 </li>
 <li><p>高效<br>插入和查询都是 O(k)</p>
@@ -452,23 +452,23 @@
 <li><p>不能删除<br>由于散列值可能有重合的情况，所以 bit 数组的值是不能置 0 的，即布隆过滤器不能进行删除操作，否则可能删除一个元素会变成删除两个元素</p>
 </li>
 </ul>
-<h1 id="假阳性率（false-positive-probability）的计算"><a href="#假阳性率（false-positive-probability）的计算" class="headerlink" title="假阳性率（false positive probability）的计算"></a>假阳性率（false positive probability）的计算</h1><p>假设散列函数选择位数组中的比特时，都是等概率的，即数据均匀分布</p>
+<h2 id="假阳性率（false-positive-probability）的计算"><a href="#假阳性率（false-positive-probability）的计算" class="headerlink" title="假阳性率（false positive probability）的计算"></a>假阳性率（false positive probability）的计算</h2><p>假设散列函数选择位数组中的比特时，都是等概率的，即数据均匀分布</p>
 <p>bit 数组长度为 m 时，布隆过滤器的散列函数会将某个特定的 bit 置 1，插入元素后，某个 bit 仍然为 0 的概率是</p>
-<p>1 - 1/m</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1 - 1/m</span><br></pre></td></tr></table></figure>
 <p>现在有 k 个散列函数，并插入 n 个元素，则该 bit 仍然为 0 的概率是</p>
-<p>(1 - 1/m) ^ (k * n)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(1 - 1/m) ^ (k * n)</span><br></pre></td></tr></table></figure>
 <p>则它被置为 1 的概率是</p>
-<p>1 - (1 - 1/m) ^ (k * n)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1 - (1 - 1/m) ^ (k * n)</span><br></pre></td></tr></table></figure>
 <p>当插入 n 个元素后，用一个不存在于集合的元素来检测，误报率为</p>
-<p>(1 - (1 - 1/m) ^ (k <em> n)) </em> k</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(1 - (1 - 1/m) ^ (k * n)) * k</span><br></pre></td></tr></table></figure>
 <p>当 n 比较大时，可以近似得到假阳性率为</p>
-<p>(1 - e ^ (-kn/m)) ^ k</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(1 - e ^ (-kn/m)) ^ k</span><br></pre></td></tr></table></figure>
 <p>结论是</p>
 <ul>
 <li>m 越大，假阳率越低</li>
 <li>n 越大，假阳率越高</li>
 </ul>
-<h1 id="利用-guava-的布隆过滤器做过滤功能"><a href="#利用-guava-的布隆过滤器做过滤功能" class="headerlink" title="利用 guava 的布隆过滤器做过滤功能"></a>利用 guava 的布隆过滤器做过滤功能</h1><p>示例</p>
+<h2 id="利用-guava-的布隆过滤器做过滤功能"><a href="#利用-guava-的布隆过滤器做过滤功能" class="headerlink" title="利用 guava 的布隆过滤器做过滤功能"></a>利用 guava 的布隆过滤器做过滤功能</h2><p>示例</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 创建一个布隆过滤器</span></span><br><span class="line">  BloomFilter&lt;String&gt; bloomFilter = BloomFilter.create(</span><br><span class="line">    Funnels.stringFunnel(Charset.defaultCharset()),</span><br><span class="line">    <span class="number">1000</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 插入元素</span></span><br><span class="line">  bloomFilter.put(<span class="string">"baidu"</span>);</span><br><span class="line">  bloomFilter.put(<span class="string">"google"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 检查元素是否存在</span></span><br><span class="line">  System.out.println(bloomFilter.mightContain(<span class="string">"yahoo"</span>));  <span class="comment">// false</span></span><br><span class="line">  System.out.println(bloomFilter.mightContain(<span class="string">"google"</span>)); <span class="comment">// true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>BloomFilter 包含 4 个关键成员</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// bit 数组</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> BitArray bits;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 散列函数的个数</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> numHashFunctions;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Funnel 接口实现类的实例，它用于将任意类型 T 的输入数据转化为 Java 基本类型的数据</span></span><br><span class="line"><span class="comment">// 这里是会转化为 byte</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> Funnel&lt;? <span class="keyword">super</span> T&gt; funnel;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 散列策略</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> Strategy strategy;</span><br></pre></td></tr></table></figure>
@@ -595,7 +595,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">25</span>
+                    <span class="site-state-item-count">27</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -628,7 +628,11 @@
                     
                       
                     
-                    <span class="site-state-item-count">7</span>
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">9</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -666,7 +670,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#实现"><span class="nav-number">2.</span> <span class="nav-text">实现</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#布隆过滤器特点"><span class="nav-number">3.</span> <span class="nav-text">布隆过滤器特点</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#假阳性率（false-positive-probability）的计算"><span class="nav-number">4.</span> <span class="nav-text">假阳性率（false positive probability）的计算</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#利用-guava-的布隆过滤器做过滤功能"><span class="nav-number">5.</span> <span class="nav-text">利用 guava 的布隆过滤器做过滤功能</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实现"><span class="nav-number">2.</span> <span class="nav-text">实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#布隆过滤器特点"><span class="nav-number">3.</span> <span class="nav-text">布隆过滤器特点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#假阳性率（false-positive-probability）的计算"><span class="nav-number">4.</span> <span class="nav-text">假阳性率（false positive probability）的计算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#利用-guava-的布隆过滤器做过滤功能"><span class="nav-number">5.</span> <span class="nav-text">利用 guava 的布隆过滤器做过滤功能</span></a></li></ol></div>
             
 
           </div>

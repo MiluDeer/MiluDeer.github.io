@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next gemini" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=sans-serif:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext">
+  
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+<link rel="stylesheet" href="/css/main.css?v=7.1.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.1.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.1.2" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.1.2',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="最近需要开发前端页面，记录学习笔记">
+<meta name="keywords" content="前端">
+<meta property="og:type" content="article">
+<meta property="og:title" content="前端开发小结 2019-09-30">
+<meta property="og:url" content="http://yoursite.com/2019/09/30/frontend-20190930/index.html">
+<meta property="og:site_name" content="Deer&#39;s blog">
+<meta property="og:description" content="最近需要开发前端页面，记录学习笔记">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/2019/09/30/frontend-20190930/p1.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/30/frontend-20190930/p2.png">
+<meta property="og:updated_time" content="2019-09-30T13:43:56.001Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="前端开发小结 2019-09-30">
+<meta name="twitter:description" content="最近需要开发前端页面，记录学习笔记">
+<meta name="twitter:image" content="http://yoursite.com/2019/09/30/frontend-20190930/p1.png">
+
+
+
+
+
+  
+  
+  <link rel="canonical" href="http://yoursite.com/2019/09/30/frontend-20190930/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>前端开发小结 2019-09-30 | Deer's blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Deer's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/30/frontend-20190930/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Deer">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Deer's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">前端开发小结 2019-09-30
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-30 19:44:54" itemprop="dateCreated datePublished" datetime="2019-09-30T19:44:54+08:00">2019-09-30</time>
+            
+
+            
+          </span>
+
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>最近需要开发前端页面，记录学习笔记</p>
+<a id="more"></a>
+<h2 id="nodejs"><a href="#nodejs" class="headerlink" title="nodejs"></a>nodejs</h2><p>nodejs 是一个基于 Chrome V8 引擎的 JavaScript 运行环境，使用了一个事件驱动、非阻塞式 I/O 的模型，使其轻量又高效。</p>
+<h2 id="npm"><a href="#npm" class="headerlink" title="npm"></a>npm</h2><p>nodejs 的默认包装管理器，可以用于安装 nodejs 的模块。</p>
+<p>使用方式</p>
+<ul>
+<li>npm install ${package}<br>  本地安装。将安装包放到当前目录的 ./node_modules 下<br>  加参数 –save 可以同时将包依赖加入到 package.json 的 dependencies<br>  加参数 –save-dev 可以同时将包依赖加入到 package.json 的 devDependencies 节点下</li>
+<li>npm install ${package} -g<br>  全局安装。将安装包放到 /usr/local 或者 nodejs 的安装目录。</li>
+<li>package.json 文件<br>  放到工程目录，可以指定项目需要什么依赖，有哪些运行命令</li>
+</ul>
+<h2 id="yarn"><a href="#yarn" class="headerlink" title="yarn"></a>yarn</h2><p>也是 nodejs 的包管理工具</p>
+<ul>
+<li>yarn init<br>  初始化一个项目</li>
+<li>yarn install<br>  安装 package.json 中的依赖</li>
+<li>yarn global add xxx<br>  全局安装</li>
+<li>yarn add ${package}<br>  安装依赖，同时加到 package.json 的 dependencies 下</li>
+<li>yarn add ${package} –dev<br>  安装依赖，同时加到 package.json 的 devDependencies 下</li>
+<li>yarn list<br>  列出工程的所有依赖</li>
+<li>yarn global list<br>  列出全局安装包</li>
+<li>yarn config get registry<br>  查看安装源</li>
+<li>yarn config set registry <a href="https://registry.npm.taobao.org" target="_blank" rel="noopener">https://registry.npm.taobao.org</a><br>切换为淘宝的安装源</li>
+<li>yarn config set registry <a href="https://registry.yarnpkg.com" target="_blank" rel="noopener">https://registry.yarnpkg.com</a><br>切换为原来的安装源</li>
+</ul>
+<h2 id="nodejs-库"><a href="#nodejs-库" class="headerlink" title="nodejs 库"></a>nodejs 库</h2><h3 id="typescript"><a href="#typescript" class="headerlink" title="typescript"></a>typescript</h3><p>是 javascript 的一个超集，有类型检查</p>
+<p>网上比较好的教程 <a href="https://ts.xcatliu.com/" target="_blank" rel="noopener">TypeScript 入门教程</a></p>
+<p>生成 typescript 应用的步骤有</p>
+<ol>
+<li>生成 javascript 应用</li>
+<li>添加 typescript 依赖</li>
+<li>运行 node_modules.bin\tsc.cmd -init 生成 tsconfig.json</li>
+</ol>
+<h3 id="react"><a href="#react" class="headerlink" title="react"></a>react</h3><p>一个用于构建用户界面的 javascript 库，运行在 nodejs 环境</p>
+<h4 id="react-JSX"><a href="#react-JSX" class="headerlink" title="react-JSX"></a>react-JSX</h4><p>它允许 HTML 与 JavaScript 的混写</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">// 两个 div 是 html 标签，而标签内用花括号包起来的是 javascript</span><br><span class="line">// JSX 允许直接在模板插入 JavaScript 变量，例如下面的 &#123;name&#125;</span><br><span class="line">ReactDOM.render(</span><br><span class="line">  &lt;div&gt;</span><br><span class="line">  &#123;</span><br><span class="line">    names.map(function (name) &#123;</span><br><span class="line">      return &lt;div&gt;Hello, &#123;name&#125;!&lt;/div&gt;</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">  &lt;/div&gt;,</span><br><span class="line">  document.getElementById(&apos;example&apos;)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<h4 id="react-组件"><a href="#react-组件" class="headerlink" title="react-组件"></a>react-组件</h4><p>React 允许将代码封装成组件，然后像插入普通 HTML 标签一样使用组件。组件可以用类定义，必须有一个成员 render 用于渲染页面。</p>
+<h4 id="react-组件的-properties-和-state"><a href="#react-组件的-properties-和-state" class="headerlink" title="react-组件的 properties 和 state"></a>react-组件的 properties 和 state</h4><ul>
+<li>props：表示组件的所有属性，属性在组件中是不可变的</li>
+<li>state：react 将组件看成是一个状态机，有一个初始状态，然后用户互动导致状态变化，再渲染 UI。</li>
+</ul>
+<h4 id="react-组件生命周期"><a href="#react-组件生命周期" class="headerlink" title="react-组件生命周期"></a>react-组件生命周期</h4><p>组件的生命周期分为 3 个状态</p>
+<ul>
+<li>Mounting：已插入真实 DOM</li>
+<li>Unmounting：已移出真实 DOM</li>
+<li>Updating：正在被重新渲染</li>
+</ul>
+<p>React 为每个状态都提供了两种处理函数，<strong>will</strong> 函数在进入状态之前调用，<strong>did</strong> 函数在进入状态之后调用，三种状态共计五种处理函数</p>
+<ul>
+<li>componentWillMount()</li>
+<li>componentDidMount()</li>
+<li>componentWillUpdate(object nextProps, object nextState)</li>
+<li>componentDidUpdate(object prevProps, object prevState)</li>
+<li>componentWillUnmount()</li>
+</ul>
+<h3 id="create-react-app"><a href="#create-react-app" class="headerlink" title="create-react-app"></a>create-react-app</h3><p>用来生成 react 应用，并提供所有依赖和安装一个脚手架工具</p>
+<p>全局安装后，可以用命令生成 react 工程</p>
+<p>yarn create react-app ${appName}</p>
+<h3 id="react-app-rewired"><a href="#react-app-rewired" class="headerlink" title="react-app-rewired"></a>react-app-rewired</h3><p>用 create-react-app 生成的工程，在 package.json 会包含 react-scripts 依赖，而 react-scripts 会包含所有 react 的真正依赖以及配置<br>要想修改其中的配置（例如 webpack 的配置），需要用 eject 命令将所有依赖展开到 package.json 文件（不可逆）</p>
+<p>react-app-rewired 的作用，就是在不 eject 的情况下，覆盖 create-react-app 的配置。</p>
+<p>使用时，需要覆盖 package.json 中默认的 scripts 配置</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  "scripts": &#123;</span><br><span class="line">    "start": "cross-env PORT=9080 react-app-rewired start",</span><br><span class="line">    "build": "react-app-rewired build",</span><br><span class="line">    "test": "react-app-rewired test",</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  ...</span><br></pre></td></tr></table></figure>
+<p>接着在工程根目录中创建一个 config-overrides.js 文件，然后在 config-overrides.js  中修改需要的配置。</p>
+<h3 id="react-dom"><a href="#react-dom" class="headerlink" title="react-dom"></a>react-dom</h3><p>DOM 和 React renderers 的入口</p>
+<p>大部分 react 应用由此开始</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">ReactDOM.render($&#123;标记&#125;), <span class="built_in">document</span>.getElementById(<span class="string">'root'</span>));</span><br></pre></td></tr></table></figure>
+<h3 id="cross-env"><a href="#cross-env" class="headerlink" title="cross-env"></a>cross-env</h3><p>用于跨平台地设置及使用环境变量。Linux 和 Windows 中的环境变量语法不一样，用 cross-env 可以统一起来。</p>
+<p>例如下面的代码定义了 PORT 变量</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  "scripts": &#123;</span><br><span class="line">    "start": "cross-env PORT=9080 react-app-rewired start",</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="webpack"><a href="#webpack" class="headerlink" title="webpack"></a>webpack</h3><p>用于 js 压缩打包</p>
+<h3 id="antd"><a href="#antd" class="headerlink" title="antd"></a>antd</h3><p>基于 react 的 UI 库</p>
+<h3 id="axios"><a href="#axios" class="headerlink" title="axios"></a>axios</h3><p>ajax 库，用于 ajax 请求</p>
+<h3 id="less"><a href="#less" class="headerlink" title="less"></a>less</h3><p>一门 CSS 预处理语言，它扩展了 CSS 语言，增加了变量、Mixin、函数等特性，使 CSS 更易维护和扩展</p>
+<h3 id="redux"><a href="#redux" class="headerlink" title="redux"></a>redux</h3><p>redux 是 javascript 状态容器，提供可预测化的状态管理，<a href="https://redux.js.org/" target="_blank" rel="noopener">官网</a></p>
+<p>使用 redux 会使应用变得复杂。以下场景适合使用 redux</p>
+<ul>
+<li>用户的使用方式复杂</li>
+<li>不同身份的用户有不同的使用方式（比如普通用户和管理员）</li>
+<li>多个用户之间可以协作</li>
+<li>与服务器大量交互，或者使用了 WebSocket</li>
+<li>View 要从多个来源获取数据</li>
+</ul>
+<p>redux 有两个基本的设计思想</p>
+<ul>
+<li>web 应用是一个状态机，视图与状态是一一对应</li>
+<li>所有的状态，保存在一个对象里面</li>
+</ul>
+<p>基本概念</p>
+<ul>
+<li>Store：就是保存数据的地方，可以把它看成一个容器，整个应用只能有一个 Store。</li>
+<li>State：是 Store 对象包含所有数据。一个 State 对应一个 View，State 的变化，会导致 View 的变化。<br>  注：redux 里的 state 和 react 中的 state 是不同的概念</li>
+<li>Action：Action 是 View 发出的通知，表示 State 要发生变化。Action 有 type 属性的对象。</li>
+<li>Action Creator：View 要发送多少种消息，就会有多少种 Action。如果都手写，会很麻烦。可以定义一个函数来生成 Action，这个函数就叫 Action Creator。</li>
+<li>store.dispatch()：调用后发出 Action。</li>
+<li>Reducer：Store 收到 Action 以后，必须给出一个新的 State，这种 State 的计算过程就叫做 Reducer。Reducer 函数需要是一个纯函数。<br>  reducer 可以拆分成多个小的 reducer，由 combineReducers 组合起来。</li>
+</ul>
+<p>redux 的一般工作流程如下图：<br><img src="/2019/09/30/frontend-20190930/p1.png" alt="redux 工作流程图"></p>
+<p>store 提供一个 subscribe 函数用于注册监听函数，可以在监听函数中重新渲染页面。</p>
+<h3 id="react-redux"><a href="#react-redux" class="headerlink" title="react-redux"></a>react-redux</h3><p>redux 官方提供的 react 绑定库，详细可看 <a href="http://cn.redux.js.org/" target="_blank" rel="noopener">Redux 中文文档</a></p>
+<p>react-redux 将所有组件分成两大类：UI 组件（presentational component）和容器组件（container component）。</p>
+<p>UI 组件的特性有</p>
+<ul>
+<li>只负责 UI 的呈现，不带有任何业务逻辑</li>
+<li>没有状态（即不使用this.state这个变量）</li>
+<li>所有数据都由参数（this.props）提供</li>
+<li>不使用任何 Redux 的 API</li>
+</ul>
+<p>窗口组件的特性有</p>
+<ul>
+<li>负责管理数据和业务逻辑，不负责 UI 的呈现</li>
+<li>带有内部状态</li>
+<li>使用 Redux 的 API</li>
+</ul>
+<p>如果一个组件既有 UI 又有业务逻辑，将它拆分成外面是一个容器组件，里面包了一个 UI 组件。</p>
+<p>react-redux 规定，所有的 UI 组件都由用户提供，容器组件则是由 react-redux 自动生成。也就是说，<strong>用户负责视觉层，状态管理则是全部交给它</strong>。</p>
+<p>react-redux 提供 connect 方法，用于从 UI 组件生成容器组件。connect 的意思，就是将这两种组件连起来。使用 connect 生成的<strong>新组件</strong>，当属性发生变量时，就会重新渲染页面</p>
+<p>例如：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> NewCompent = connect (</span><br><span class="line">  mapStateToProps,</span><br><span class="line">  mapDispatchToProps</span><br><span class="line">)(MyCompent))</span><br><span class="line"></span><br><span class="line">ReactDOM.render (</span><br><span class="line">  &lt;Provider store=&#123;store&#125;&gt;</span><br><span class="line">    &lt;NewCompent /&gt;</span><br><span class="line">  &lt;<span class="regexp">/Provider&gt;,</span></span><br><span class="line"><span class="regexp">  document.getElementById('root'));</span></span><br></pre></td></tr></table></figure>
+<p>mapStateToProps 是一个函数，建立一个从（外部的）state 对象到（UI 组件的）props 对象的映射关系。mapStateToProps 执行后应该返回一个对象，里面的每一个键值对就是一个映射<br>mapStateToProps 会订阅 Store，<strong>每当 state 更新的时候，就会自动执行</strong>，重新计算 UI 组件的参数，从而触发 UI 组件的重新渲染。</p>
+<p>mapDispatchToProps 建立 UI 组件的参数到 store.dispatch 方法的映射，定义了哪些用户的操作应该当作 Action，传给 Store<br>如果 mapDispatchToProps 是一个函数，会得到 dispatch 和 ownProps（容器组件的 props 对象）两个参数<br>如果 mapDispatchToProps 是一个对象，它的每个键名也是对应 UI 组件的同名参数，键值应该是一个函数，会被当作 Action creator ，返回的 Action 会由 Redux 自动发出。</p>
+<p>Provider 包装 store 对象，使得所有地方都可以获取 store 对象而不需要将 store 对象作参数到处传递。</p>
+<h3 id="redux-saga"><a href="#redux-saga" class="headerlink" title="redux-saga"></a>redux-saga</h3><p>redux 有一个 middleware 的组件，它提供的是位于 action 被发起之后，到达 reducer 之前的扩展点。而 redux-saga 就是这样的一个扩展的 middleware，用于管理应用程序 Side Effect（副作用，例如异步获取数据，访问浏览器缓存等）。比较好的教程有 <a href="https://redux-saga-in-chinese.js.org/index.html" target="_blank" rel="noopener">redux-saga 中文教程</a></p>
+<p><img src="/2019/09/30/frontend-20190930/p2.png" alt="加入 saga 后的工作流程图"></p>
+<p>sage 提供了一套原语用来管理异步操作。在 redux-saga 的世界里，所有的任务都通用 yield Effects 来完成。Effects 都是简单的 Javascript 对象，可以看作是redux-saga 的任务单元。常见的原语有：</p>
+<p>Saga 辅助函数，用来在一些特定的 action 被发起到 Store 时派生任务</p>
+<ul>
+<li>takeEvery，表示每次 Action 被发起时，启动任务</li>
+<li>takeLatest，表示只为最新被的 Action 启动任务</li>
+</ul>
+<p>redux-saga 框架提供了很多创建 effect 的函数，常见的有</p>
+<ul>
+<li>take(pattern)<br>  take函数可以理解为监听未来的 action，它创建了一个命令对象，告诉 middleware 等待一个特定的 action， Generator 会暂停，直到一个与 pattern 匹配的action 被发起，才会继续执行下面的语句。所以 take 是一个阻塞的 effect。</li>
+<li>put(action)<br>  put 函数是用来发送 action 的 effect，可以简单的把它理解成为 redux 框架中的 dispatch 函数，当 put 一个 action 后，reducer 中就会计算新的 state 并返回。put 是阻塞的 effect。</li>
+<li>call(fn, …args)<br>  call 函数可以把它简单的理解为就是可以调用其他函数的函数，它命令 middleware 来调用 fn 函数， args 为函数的参数。注意：fn 函数可以是一个 Generator 函数，也可以是一个返回 Promise 的普通函数，call 函数也是阻塞 effect。</li>
+<li>fork(fn, …args)<br>  fork 函数和 call 函数很像，都是用来调用其他函数的，但是fork函数是非阻塞函数。</li>
+<li>select(selector, …args)<br>  select 函数是用来指示 middleware 调用提供的选择器获取 Store 上的 state 数据，可以简单的把它理解为 redux 框架中获取 store 上的 state 数据一样的功能：store.getState()</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建一个 Redux 中间件，将 Sagas 与 Redux Store 链接起来</span></span><br><span class="line"><span class="keyword">const</span> sagaMiddleware = createSagaMiddleware();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 动态执行 sagas，rootSaga 是一个 Generator 函数</span></span><br><span class="line">sagaMiddleware.run(rootSaga);</span><br></pre></td></tr></table></figure>
+<h3 id="react-router-dom"><a href="#react-router-dom" class="headerlink" title="react-router-dom"></a>react-router-dom</h3><p>react 路由组件，实现页面间的跳转。</p>
+<h3 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h3><p>redux-saga 使用了 ES6 的 Generator 功能，让异步的流程更易于读取，写入和测试。相关的资料有 <a href="http://www.ruanyifeng.com/blog/2015/04/generator.html" target="_blank" rel="noopener">Generator 函数的含义与用法</a></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        
+          
+        
+        <div class="post-tags">
+          
+            <a href="/tags/前端/" rel="tag"># 前端</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/09/26/source-note-redis-replication/" rel="next" title="【阅读笔记】redis 主从复制">
+                <i class="fa fa-chevron-left"></i> 【阅读笔记】redis 主从复制
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Deer</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">27</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">9</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#nodejs"><span class="nav-number">1.</span> <span class="nav-text">nodejs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#npm"><span class="nav-number">2.</span> <span class="nav-text">npm</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#yarn"><span class="nav-number">3.</span> <span class="nav-text">yarn</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#nodejs-库"><span class="nav-number">4.</span> <span class="nav-text">nodejs 库</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#typescript"><span class="nav-number">4.1.</span> <span class="nav-text">typescript</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#react"><span class="nav-number">4.2.</span> <span class="nav-text">react</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#react-JSX"><span class="nav-number">4.2.1.</span> <span class="nav-text">react-JSX</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#react-组件"><span class="nav-number">4.2.2.</span> <span class="nav-text">react-组件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#react-组件的-properties-和-state"><span class="nav-number">4.2.3.</span> <span class="nav-text">react-组件的 properties 和 state</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#react-组件生命周期"><span class="nav-number">4.2.4.</span> <span class="nav-text">react-组件生命周期</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#create-react-app"><span class="nav-number">4.3.</span> <span class="nav-text">create-react-app</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#react-app-rewired"><span class="nav-number">4.4.</span> <span class="nav-text">react-app-rewired</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#react-dom"><span class="nav-number">4.5.</span> <span class="nav-text">react-dom</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cross-env"><span class="nav-number">4.6.</span> <span class="nav-text">cross-env</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#webpack"><span class="nav-number">4.7.</span> <span class="nav-text">webpack</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#antd"><span class="nav-number">4.8.</span> <span class="nav-text">antd</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#axios"><span class="nav-number">4.9.</span> <span class="nav-text">axios</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#less"><span class="nav-number">4.10.</span> <span class="nav-text">less</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#redux"><span class="nav-number">4.11.</span> <span class="nav-text">redux</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#react-redux"><span class="nav-number">4.12.</span> <span class="nav-text">react-redux</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#redux-saga"><span class="nav-number">4.13.</span> <span class="nav-text">redux-saga</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#react-router-dom"><span class="nav-number">4.14.</span> <span class="nav-text">react-router-dom</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他"><span class="nav-number">4.15.</span> <span class="nav-text">其他</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Deer</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.1.2</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/utils.js?v=7.1.2"></script>
+
+  <script src="/js/motion.js?v=7.1.2"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/affix.js?v=7.1.2"></script>
+
+  <script src="/js/schemes/pisces.js?v=7.1.2"></script>
+
+
+
+
+  
+  <script src="/js/scrollspy.js?v=7.1.2"></script>
+<script src="/js/post-details.js?v=7.1.2"></script>
+
+
+
+  
+
+
+  <script src="/js/next-boot.js?v=7.1.2"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

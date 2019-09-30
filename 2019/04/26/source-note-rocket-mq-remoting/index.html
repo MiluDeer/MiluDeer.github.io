@@ -127,7 +127,7 @@
 
 
   <meta name="description" content="分析 rocketmq 如何实现基本的远程通信">
-<meta name="keywords" content="rocketmq">
+<meta name="keywords" content="阅读笔记,rocketmq">
 <meta property="og:type" content="article">
 <meta property="og:title" content="【阅读笔记】rocketmq 远程通信 （二）">
 <meta property="og:url" content="http://yoursite.com/2019/04/26/source-note-rocket-mq-remoting/index.html">
@@ -135,7 +135,7 @@
 <meta property="og:description" content="分析 rocketmq 如何实现基本的远程通信">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/2019/04/26/source-note-rocket-mq-remoting/rocketmq-remoting_类图.png">
-<meta property="og:updated_time" content="2019-06-15T13:13:22.152Z">
+<meta property="og:updated_time" content="2019-09-30T12:51:12.530Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="【阅读笔记】rocketmq 远程通信 （二）">
 <meta name="twitter:description" content="分析 rocketmq 如何实现基本的远程通信">
@@ -436,14 +436,10 @@
       
         <p>分析 rocketmq 如何实现基本的远程通信</p>
 <a id="more"></a>
-<h1 id="协议"><a href="#协议" class="headerlink" title="协议"></a>协议</h1><p>rocketmq-remoting 工程实现 rocketmq 的远程通信，组件间大部分的通信都是通过这个模块实现。</p>
+<h2 id="协议"><a href="#协议" class="headerlink" title="协议"></a>协议</h2><p>rocketmq-remoting 工程实现 rocketmq 的远程通信，组件间大部分的通信都是通过这个模块实现。</p>
 <p>rocketmq-remoting 使用 netty 实现的，基于 TCP 的应用层协议。协议格式在 RemotingCommand 定义，一个数据包由数据包长度，header 长度，header，body 四部分组成，如下：</p>
-<pre><code>+--------+---------------+------+------+
-|        |               |      |      |
-| length | header length | head | body |
-|        |               |      |      |
-+--------+---------------+------+------+
-</code></pre><p>header 包含几个部分</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">+--------+---------------+-------+------+</span><br><span class="line">|        |               |       |      |</span><br><span class="line">| length | header length | header| body |</span><br><span class="line">|        |               |       |      |</span><br><span class="line">+--------+---------------+-------+------+</span><br></pre></td></tr></table></figure>
+<p>header 包含几个部分</p>
 <table>
 <thead>
 <tr>
@@ -483,21 +479,22 @@
 </tbody>
 </table>
 <p>body 就是要发送的命令数据</p>
-<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><img src="/2019/04/26/source-note-rocket-mq-remoting/rocketmq-remoting_类图.png" alt="rocketmq-remoting 类图 部署图"></p>
-<p>remoting 主要由 NettyRemotingServer 和 NettyRemotingClient 分别实现 server， clinet。</p>
-<p>相同点  </p>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>关键的类层次结构如下图</p>
+<p><img src="/2019/04/26/source-note-rocket-mq-remoting/rocketmq-remoting_类图.png" alt="rocketmq-remoting 类图 部署图"></p>
+<p>remoting 主要由 NettyRemotingServer 和 NettyRemotingClient 分别实现 server，clinet。</p>
+<p>server 和 clinet 的相同点</p>
 <ol>
 <li>server 可以向 clinet 发送 request 命令， client 也可以向 server 发送命令</li>
 <li>都有 3 种调用方法 sync, async 和 one way，但 server 只能用已经有的 channel 发送， client 可以创建新的 channel 然后发送</li>
 <li>都可以通过 registerProcessor 注册一个命令处理器，用于命令特定命令</li>
 <li>可以更新 namesrv 列表</li>
 </ol>
-<p>不同点  </p>
+<p>不同点</p>
 <ol>
 <li>server 有侦听端口（这个当然了）</li>
 <li>server 可以设定默认的 processor， clinet 不能</li>
 </ol>
-<h2 id="NettyRemotingAbstract"><a href="#NettyRemotingAbstract" class="headerlink" title="NettyRemotingAbstract"></a>NettyRemotingAbstract</h2><p>server 和 client 的公共部分由 NettyRemotingAbstract 实现，包括：  </p>
+<h3 id="NettyRemotingAbstract"><a href="#NettyRemotingAbstract" class="headerlink" title="NettyRemotingAbstract"></a>NettyRemotingAbstract</h3><p>server 和 client 的公共部分由 NettyRemotingAbstract 实现，包括：</p>
 <ul>
 <li>request processor 的注册以及命令的处理， response 命令的处理</li>
 <li>sync, async, one way 三种调用方法的实现</li>
@@ -505,24 +502,25 @@
 <li>async 和 one way 调用的流量控制</li>
 </ul>
 <h3 id="request-amp-response-的处理"><a href="#request-amp-response-的处理" class="headerlink" title="request &amp; response 的处理"></a>request &amp; response 的处理</h3><p>当子类收到 RemotingCommand 数据时，调用 processMessageReceived 方法，processMessageReceived 根据命令的类型是（type）决定如果是 REQUEST_COMMAND，则调用 processRequestCommand，如果是 RESPONSE_COMMAND 则调用  processResponseCommand</p>
-<p>request<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">HashMap&lt;Integer<span class="comment">/* request code */</span>, Pair&lt;NettyRequestProcessor, ExecutorService&gt;&gt; processorTable</span><br></pre></td></tr></table></figure></p>
+<p>request</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">HashMap&lt;Integer<span class="comment">/* request code */</span>, Pair&lt;NettyRequestProcessor, ExecutorService&gt;&gt; processorTable</span><br></pre></td></tr></table></figure>
 <p>成员 processorTable 保存着注册的 request code 和 processor 的对应关系，ExecutorService 是执行的线程池<br>当 processRequestCommand 就是用 processorTable 中找到对应的 processor，然后构造一个 Runnable 提交到指定的线程池  </p>
 <p>这个 Runnable 调用 processRequest 方法得到 response 类型的 RemotingCommand，如果是 sync 或 async 调用方法，就<br>调用 writeAndFlush 方法将 response 写回调用方</p>
-<p>response<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ConcurrentMap&lt;Integer <span class="comment">/* opaque */</span>, ResponseFuture&gt; responseTable</span><br></pre></td></tr></table></figure></p>
+<p>response</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ConcurrentMap&lt;Integer <span class="comment">/* opaque */</span>, ResponseFuture&gt; responseTable</span><br></pre></td></tr></table></figure>
 <p>成员 responseTable 保存返回的 response 类型 RemotingCommand  </p>
 <p>当向远端发送一个 request 时，NettyRemotingAbstract 生成一个 opaque 和一个 ResponseFuture 保存到 responseTable<br>当远端发送的 response 到达时，由  processResponseCommand 方法处理，processResponseCommand 方法根据返回的 opaque<br>找到对应的 ResponseFuture，设置返回结果，然后调用回调（async）或唤醒等待 ResponseFuture 的线程(sync)</p>
 <h3 id="sync-async-one-way-三种调用方法的实现"><a href="#sync-async-one-way-三种调用方法的实现" class="headerlink" title="sync, async, one way 三种调用方法的实现"></a>sync, async, one way 三种调用方法的实现</h3><ul>
-<li>sync 同步调用</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> RemotingCommand <span class="title">invokeSyncImpl</span><span class="params">(<span class="keyword">final</span> Channel channel,</span></span></span><br><span class="line"><span class="function"><span class="params">  <span class="keyword">final</span> RemotingCommand request,</span></span></span><br><span class="line"><span class="function"><span class="params">  <span class="keyword">final</span> <span class="keyword">long</span> timeoutMillis)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 生成 future 并放到 responseTable</span></span><br><span class="line">  ResponseFuture responseFuture = <span class="keyword">new</span> ResponseFuture</span><br><span class="line">  responseTable.put(opaque, responseFuture)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 向远端发送命令</span></span><br><span class="line">  channel.writeAndFlush(request).addListener(<span class="keyword">new</span> ChannelFutureListener() &#123;</span><br><span class="line">    ...</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 等待写 responseFuture，</span></span><br><span class="line">  <span class="comment">// 等收到对应的 Response 时，唤醒这个线程</span></span><br><span class="line">  RemotingCommand responseCommand = responseFuture.waitResponse(timeoutMillis);</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ul>
-<li>async 异步调用</li>
-</ul>
+<li><p>sync 同步调用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> RemotingCommand <span class="title">invokeSyncImpl</span><span class="params">(<span class="keyword">final</span> Channel channel,</span></span></span><br><span class="line"><span class="function"><span class="params">  <span class="keyword">final</span> RemotingCommand request,</span></span></span><br><span class="line"><span class="function"><span class="params">  <span class="keyword">final</span> <span class="keyword">long</span> timeoutMillis)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 生成 future 并放到 responseTable</span></span><br><span class="line">  ResponseFuture responseFuture = <span class="keyword">new</span> ResponseFuture</span><br><span class="line">  responseTable.put(opaque, responseFuture)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 向远端发送命令</span></span><br><span class="line">  channel.writeAndFlush(request).addListener(<span class="keyword">new</span> ChannelFutureListener() &#123;</span><br><span class="line">    ...</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 等待写 responseFuture，</span></span><br><span class="line">  <span class="comment">// 等收到对应的 Response 时，唤醒这个线程</span></span><br><span class="line">  RemotingCommand responseCommand = responseFuture.waitResponse(timeoutMillis);</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>async 异步调用</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">invokeAsyncImpl</span><span class="params">(<span class="keyword">final</span> Channel channel,</span></span></span><br><span class="line"><span class="function"><span class="params">  <span class="keyword">final</span> RemotingCommand request,</span></span></span><br><span class="line"><span class="function"><span class="params">  <span class="keyword">final</span> <span class="keyword">long</span> timeoutMillis,</span></span></span><br><span class="line"><span class="function"><span class="params">  // 多了个 callback</span></span></span><br><span class="line"><span class="function"><span class="params">  <span class="keyword">final</span> InvokeCallback invokeCallback)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">  ...</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">  <span class="comment">// 调用次数控制</span></span></span><br><span class="line"><span class="function">  <span class="keyword">boolean</span> acquired </span>= <span class="keyword">this</span>.semaphoreAsync.tryAcquire(timeoutMillis, TimeUnit.MILLISECONDS)</span><br><span class="line">  <span class="keyword">if</span> (acquired) &#123;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 生成 future 并放到 responseTable</span></span><br><span class="line">      <span class="comment">// 这个 future 设置了 callback</span></span><br><span class="line">      <span class="keyword">final</span> ResponseFuture responseFuture = <span class="keyword">new</span> ResponseFuture(channel, opaque, timeoutMillis - costTime, invokeCallback, once);</span><br><span class="line">      <span class="keyword">this</span>.responseTable.put(opaque, responseFuture);</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 向远端发送命令</span></span><br><span class="line">      channel.writeAndFlush(request).addListener(<span class="keyword">new</span> ChannelFutureListener() &#123;</span><br><span class="line">          ...</span><br><span class="line">      &#125;);</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 直接返回</span></span><br><span class="line">      <span class="comment">// 等收到对应的 Response 时，会调用对应的 callback</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ul>
-<li>one way</li>
-</ul>
+</li>
+<li><p>one way</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">invokeOnewayImpl</span><span class="params">(<span class="keyword">final</span> Channel channel,</span></span></span><br><span class="line"><span class="function"><span class="params">  <span class="keyword">final</span> RemotingCommand request,</span></span></span><br><span class="line"><span class="function"><span class="params">  <span class="keyword">final</span> <span class="keyword">long</span> timeoutMillis)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  <span class="keyword">boolean</span> acquired = <span class="keyword">this</span>.semaphoreOneway.tryAcquire(timeoutMillis, TimeUnit.MILLISECONDS);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 调用次数控制</span></span><br><span class="line">  <span class="keyword">if</span> (acquired) &#123;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 向远端发送命令</span></span><br><span class="line">      channel.writeAndFlush(request).addListener(<span class="keyword">new</span> ChannelFutureListener() &#123;</span><br><span class="line">          ...</span><br><span class="line">      &#125;);</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 直接返回，连 response future 都不需要</span></span><br><span class="line">  &#125;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
 <h2 id="ResponseFuture"><a href="#ResponseFuture" class="headerlink" title="ResponseFuture"></a>ResponseFuture</h2><p>保存异步调用的结果。异步调用时远程命令时，先 new 一个 ResponseFuture 对象保存到 responseTable<br>待远程调用返回时，将结果写到 ResponseFuture</p>
 <p>ResponseFuture 通过成员 opaque 和 processChannel 标识出唯一的请求，<br>countDownLatch 成员用于实现同步调用，waitResponse 时 await，有结果时 countDown<br>responseCommand 和 cause 保存调用的结果</p>
 <h2 id="NettyLogger"><a href="#NettyLogger" class="headerlink" title="NettyLogger"></a>NettyLogger</h2><p>桥接 netty 的 log 到 rocketmq。</p>
@@ -540,7 +538,8 @@
 <p>与 server 一样， client 也有一个 Timer 定时调用 scanResponseTable 清理过期的 response future</p>
 <h2 id="序列化"><a href="#序列化" class="headerlink" title="序列化"></a>序列化</h2><p>远程通信需要只能传送字节流，所以在发送 request 或 response 前，需要先将对象转换成字节流，而接受到远端的数据时，需要将字节流转换成数据，这就是序列化和反序列化的职责  </p>
 <p>所有的需要传输的实体类都在 rocketmq-common 工程的 org.apache.rocketmq.common.protocol 的子包中定义，他们之中需要序列化的都会继承 rocketmq-remoting 工程下的 RemotingSerializable</p>
-<p>示例 Register Broker<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 生成 header</span></span><br><span class="line">RegisterBrokerRequestHeader requestHeader = <span class="keyword">new</span> RegisterBrokerRequestHeader();</span><br><span class="line">... <span class="comment">// set fields</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 生成 body</span></span><br><span class="line">RegisterBrokerBody requestBody = <span class="keyword">new</span> RegisterBrokerBody();</span><br><span class="line">... <span class="comment">// set fields</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">byte</span>[] body = requestBody.encode(compressed); <span class="comment">// 将对象转换成 json 形式 byte []</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 生成 RemotingCommand</span></span><br><span class="line">RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.REGISTER_BROKER, requestHeader);</span><br><span class="line">request.setBody(body);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 发送</span></span><br><span class="line">remotingClient.invokeSync(addr, request, timeoutMillis);</span><br></pre></td></tr></table></figure></p>
+<p>示例 Register Broker</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 生成 header</span></span><br><span class="line">RegisterBrokerRequestHeader requestHeader = <span class="keyword">new</span> RegisterBrokerRequestHeader();</span><br><span class="line">... <span class="comment">// set fields</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 生成 body</span></span><br><span class="line">RegisterBrokerBody requestBody = <span class="keyword">new</span> RegisterBrokerBody();</span><br><span class="line">... <span class="comment">// set fields</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">byte</span>[] body = requestBody.encode(compressed); <span class="comment">// 将对象转换成 json 形式 byte []</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 生成 RemotingCommand</span></span><br><span class="line">RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.REGISTER_BROKER, requestHeader);</span><br><span class="line">request.setBody(body);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 发送</span></span><br><span class="line">remotingClient.invokeSync(addr, request, timeoutMillis);</span><br></pre></td></tr></table></figure>
 
       
     </div>
@@ -566,6 +565,8 @@
           
         
         <div class="post-tags">
+          
+            <a href="/tags/阅读笔记/" rel="tag"># 阅读笔记</a>
           
             <a href="/tags/rocketmq/" rel="tag"># rocketmq</a>
           
@@ -661,7 +662,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">25</span>
+                    <span class="site-state-item-count">27</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -694,7 +695,11 @@
                     
                       
                     
-                    <span class="site-state-item-count">7</span>
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">9</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -732,7 +737,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#协议"><span class="nav-number">1.</span> <span class="nav-text">协议</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#实现"><span class="nav-number">2.</span> <span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-number">2.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NettyRemotingAbstract"><span class="nav-number">2.2.</span> <span class="nav-text">NettyRemotingAbstract</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#request-amp-response-的处理"><span class="nav-number">2.2.1.</span> <span class="nav-text">request &amp; response 的处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sync-async-one-way-三种调用方法的实现"><span class="nav-number">2.2.2.</span> <span class="nav-text">sync, async, one way 三种调用方法的实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ResponseFuture"><span class="nav-number">2.3.</span> <span class="nav-text">ResponseFuture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NettyLogger"><span class="nav-number">2.4.</span> <span class="nav-text">NettyLogger</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NettyRemotingServer"><span class="nav-number">2.5.</span> <span class="nav-text">NettyRemotingServer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NettyRemotingClient"><span class="nav-number">2.6.</span> <span class="nav-text">NettyRemotingClient</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#序列化"><span class="nav-number">2.7.</span> <span class="nav-text">序列化</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#协议"><span class="nav-number">1.</span> <span class="nav-text">协议</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实现"><span class="nav-number">2.</span> <span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#概述"><span class="nav-number">2.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NettyRemotingAbstract"><span class="nav-number">2.2.</span> <span class="nav-text">NettyRemotingAbstract</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#request-amp-response-的处理"><span class="nav-number">2.3.</span> <span class="nav-text">request &amp; response 的处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sync-async-one-way-三种调用方法的实现"><span class="nav-number">2.4.</span> <span class="nav-text">sync, async, one way 三种调用方法的实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ResponseFuture"><span class="nav-number">3.</span> <span class="nav-text">ResponseFuture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NettyLogger"><span class="nav-number">4.</span> <span class="nav-text">NettyLogger</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NettyRemotingServer"><span class="nav-number">5.</span> <span class="nav-text">NettyRemotingServer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NettyRemotingClient"><span class="nav-number">6.</span> <span class="nav-text">NettyRemotingClient</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#序列化"><span class="nav-number">7.</span> <span class="nav-text">序列化</span></a></li></ol></div>
             
 
           </div>
