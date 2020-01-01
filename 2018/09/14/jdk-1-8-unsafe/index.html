@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next gemini" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=sans-serif:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext">
+  
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+<link rel="stylesheet" href="/css/main.css?v=7.1.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.1.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.1.2" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.1.2',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="Unsafe 类在 sun.misc 包下，不属于Java标准。但是很多 Java 的基础类库，以及优秀的三方库都会用这个提升性能。 Unsafe 使用了单例模式，想使用 Unsafe 类就需要获取实例。由于安全限制，不能用一般的方法获取这个实例，通常都是使用反射获取 12345678910111213public class UnsafeDemo &amp;#123;  static sun.misc.">
+<meta name="keywords" content="jdk">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【java】Java 1.8 Unsafe">
+<meta property="og:url" content="http://yoursite.com/2018/09/14/jdk-1-8-unsafe/index.html">
+<meta property="og:site_name" content="Deer&#39;s blog">
+<meta property="og:description" content="Unsafe 类在 sun.misc 包下，不属于Java标准。但是很多 Java 的基础类库，以及优秀的三方库都会用这个提升性能。 Unsafe 使用了单例模式，想使用 Unsafe 类就需要获取实例。由于安全限制，不能用一般的方法获取这个实例，通常都是使用反射获取 12345678910111213public class UnsafeDemo &amp;#123;  static sun.misc.">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-12-22T13:47:14.381Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【java】Java 1.8 Unsafe">
+<meta name="twitter:description" content="Unsafe 类在 sun.misc 包下，不属于Java标准。但是很多 Java 的基础类库，以及优秀的三方库都会用这个提升性能。 Unsafe 使用了单例模式，想使用 Unsafe 类就需要获取实例。由于安全限制，不能用一般的方法获取这个实例，通常都是使用反射获取 12345678910111213public class UnsafeDemo &amp;#123;  static sun.misc.">
+
+
+
+
+
+  
+  
+  <link rel="canonical" href="http://yoursite.com/2018/09/14/jdk-1-8-unsafe/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>【java】Java 1.8 Unsafe | Deer's blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Deer's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/14/jdk-1-8-unsafe/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Deer">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Deer's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">【java】Java 1.8 Unsafe
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-09-14 16:34:00" itemprop="dateCreated datePublished" datetime="2018-09-14T16:34:00+08:00">2018-09-14</time>
+            
+
+            
+          </span>
+
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Unsafe 类在 sun.misc 包下，不属于Java标准。但是很多 Java 的基础类库，以及优秀的三方库都会用这个提升性能。</p>
+<p>Unsafe 使用了单例模式，想使用 Unsafe 类就需要获取实例。由于安全限制，不能用一般的方法获取这个实例，通常都是使用反射获取</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UnsafeDemo</span> </span>&#123;</span><br><span class="line">  <span class="keyword">static</span> sun.misc.Unsafe U;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">static</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      Field f = Unsafe.class.getDeclaredField(<span class="string">"theUnsafe"</span>);</span><br><span class="line">      f.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">      U = (Unsafe) f.get(<span class="keyword">null</span>);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> Error(e);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Unsafe 类几类功能：</p>
+<h2 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">allocateMemory</span><span class="params">(<span class="keyword">long</span> bytes)</span></span></span><br></pre></td></tr></table></figure>
+<p>向操作系统申请一块本地内存，大小为 bytes 字节，返回内存块的地址。本地内存是指不由 JVM 管理的内存，不会被 GC 管理。底层使用 malloc 实现</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">reallocateMemory</span><span class="params">(<span class="keyword">long</span> address, <span class="keyword">long</span> bytes)</span></span></span><br></pre></td></tr></table></figure>
+<p>resize 一块本地内存，address 是原内存地址， bytes 是新大小。如果 address 是 0，则内部用 allocateMemory 分配新内存；如果 bytes 是 0，则用 freeMemory 释放原内存。底层使用 realloc 实现。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">freeMemory</span><span class="params">(<span class="keyword">long</span> address)</span></span></span><br></pre></td></tr></table></figure>
+<p>释放由 allocateMemory 申请的内存，底层用 free 实现</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">pageSize</span><span class="params">()</span></span></span><br></pre></td></tr></table></figure>
+<p>返回一页内存的大小</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">addressSize</span><span class="params">()</span></span></span><br></pre></td></tr></table></figure>
+<p>返回一个指针的大小</p>
+<h2 id="内存操作"><a href="#内存操作" class="headerlink" title="内存操作"></a>内存操作</h2><p>内存操作需要提供地址。UnSafe 需要地址的场合会需要两个参数 Object o, long offset</p>
+<ul>
+<li>如果 o 是 null， offset 将被视为具体的内存地址</li>
+<li>如果 o 非 null，offset 被为字段在对象或数组中的偏移。 o 和 offset 一起得到一个有效地址</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">setMemory</span><span class="params">(Object o, <span class="keyword">long</span> offset, <span class="keyword">long</span> bytes, <span class="keyword">byte</span> value)</span></span></span><br></pre></td></tr></table></figure>
+<p>将一块内存设置为固定值</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">setMemory</span><span class="params">(<span class="keyword">long</span> address, <span class="keyword">long</span> bytes, <span class="keyword">byte</span> value)</span></span></span><br></pre></td></tr></table></figure>
+<p>等价于 setMemory(null, address, bytes, value);</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">copyMemory</span><span class="params">(Object srcBase, <span class="keyword">long</span> srcOffset, Object destBase, <span class="keyword">long</span> destOffset, <span class="keyword">long</span> bytes)</span></span></span><br></pre></td></tr></table></figure>
+<p>复制内存</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">copyMemory</span><span class="params">(<span class="keyword">long</span> srcAddress, <span class="keyword">long</span> destAddress, <span class="keyword">long</span> bytes)</span></span></span><br></pre></td></tr></table></figure>
+<p>等价于 copyMemory(null, srcAddress, null, destAddress, bytes)</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">T <span class="title">getT</span><span class="params">(Object o, <span class="keyword">long</span> offset)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">putT</span><span class="params">(Object o, <span class="keyword">long</span> offset, T x)</span></span></span><br></pre></td></tr></table></figure>
+<p>获取/设置一块内存的值，T 可以是 int、boolean、byte、short、char、long、float、double。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Object <span class="title">getObject</span><span class="params">(Object o, <span class="keyword">long</span> offset)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">putObject</span><span class="params">(Object o, <span class="keyword">long</span> offset, Object x)</span></span></span><br></pre></td></tr></table></figure>
+<p>不需要 Object o 参数的版本，等价于 getT(null, address)</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">T <span class="title">getTVolatile</span><span class="params">(Object o, <span class="keyword">long</span> offset)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">putTVolatile</span><span class="params">(Object o, <span class="keyword">long</span> offset, T x)</span></span></span><br></pre></td></tr></table></figure>
+<p>带 volatile 语义的 put / get</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">getAddress</span><span class="params">(Object o, <span class="keyword">long</span> offset)</span></span></span><br></pre></td></tr></table></figure>
+<p>从指定地址获取一个内存指针</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">putAddress</span><span class="params">(Object o, <span class="keyword">long</span> offset, <span class="keyword">long</span> x)</span></span></span><br></pre></td></tr></table></figure>
+<p>将指针存到指定地址</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">putOrderedObject</span><span class="params">(Object o, <span class="keyword">long</span> offset, Object x)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">putOrderedInt</span><span class="params">(Object o, <span class="keyword">long</span> offset, <span class="keyword">int</span> x)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">putOrderedLong</span><span class="params">(Object o, <span class="keyword">long</span> offset, <span class="keyword">long</span> x)</span></span></span><br></pre></td></tr></table></figure>
+<p>保证写后立即可见</p>
+<h2 id="计算类字段的内存偏移位置"><a href="#计算类字段的内存偏移位置" class="headerlink" title="计算类字段的内存偏移位置"></a>计算类字段的内存偏移位置</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">staticFieldOffset</span><span class="params">(Field f)</span></span></span><br></pre></td></tr></table></figure>
+<p>返回一个静态字段的内存位置</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">objectFieldOffset</span><span class="params">(Field f)</span></span></span><br></pre></td></tr></table></figure>
+<p>返回一个指定字段的存储位置</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Object <span class="title">staticFieldBase</span><span class="params">(Field f)</span></span></span><br></pre></td></tr></table></figure>
+<p>返回一个静态字段的存储位置，是一个引用</p>
+<h2 id="非常规的对象实例化"><a href="#非常规的对象实例化" class="headerlink" title="非常规的对象实例化"></a>非常规的对象实例化</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Object <span class="title">allocateInstance</span><span class="params">(Class&lt;?&gt; cls)</span></span></span><br></pre></td></tr></table></figure>
+<p>创建一个类实例，但不执行构造方法</p>
+<h2 id="数组操作"><a href="#数组操作" class="headerlink" title="数组操作"></a>数组操作</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">arrayBaseOffset</span><span class="params">(Class&lt;?&gt; arrayClass)</span></span></span><br></pre></td></tr></table></figure>
+<p>返回 arrayClass 类型数组的第 0 个元素到数组对象内存开始的偏移</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">arrayIndexScale</span><span class="params">(Class&lt;?&gt; arrayClass)</span></span></span><br></pre></td></tr></table></figure>
+<p>返回一个数组元素需要的长度大小</p>
+<p>用法如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> base = U.arrayBaseOffset(Integer[].class);</span><br><span class="line"><span class="keyword">int</span> scale = U.arrayIndexScale(Integer[].class);</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">int</span> SIZE = <span class="number">4</span>;</span><br><span class="line">Integer [] a = <span class="keyword">new</span> Integer[SIZE];</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span> ; i &lt; SIZE ; ++i) &#123;</span><br><span class="line">  <span class="comment">// 与 a[i] = new Integer(i) 等价</span></span><br><span class="line">  U.putOrderedObject(a, base + i * scale, <span class="keyword">new</span> Integer(i));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span> ; i &lt; SIZE ; ++i) &#123;</span><br><span class="line">  System.out.println(a[i]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="异常"><a href="#异常" class="headerlink" title="异常"></a>异常</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">throwException</span><span class="params">(Throwable e)</span></span></span><br></pre></td></tr></table></figure>
+<p>该方法抛出受检异常，但代码不必捕捉或重新抛出它，正如运行时异常一样</p>
+<h2 id="动态类"><a href="#动态类" class="headerlink" title="动态类"></a>动态类</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Class&lt;?&gt; defineClass(String name, <span class="keyword">byte</span>[] b, <span class="keyword">int</span> off, <span class="keyword">int</span> len, ClassLoader loader, ProtectionDomain protectionDomain)</span><br></pre></td></tr></table></figure>
+<p>从字节码创建一个类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Class&lt;?&gt; defineAnonymousClass(Class&lt;?&gt; hostClass, <span class="keyword">byte</span>[] data, Object[] cpPatches)</span><br></pre></td></tr></table></figure>
+<p>从字节码创建匿名类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">ensureClassInitialized</span><span class="params">(Class&lt;?&gt; c)</span></span></span><br></pre></td></tr></table></figure>
+<p>加载类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">shouldBeInitialized</span><span class="params">(Class&lt;?&gt; c)</span></span></span><br></pre></td></tr></table></figure>
+<p>检查类是否已加载</p>
+<h2 id="多线程同步"><a href="#多线程同步" class="headerlink" title="多线程同步"></a>多线程同步</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">monitorEnter</span><span class="params">(Object obj)</span></span></span><br></pre></td></tr></table></figure>
+<p>锁定对象</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">monitorExit</span><span class="params">(Object obj)</span></span></span><br></pre></td></tr></table></figure>
+<p>释放锁</p>
+<p>monitorEnter 和 monitorExit 的组合相当于 synchronized 关键字</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">tryMonitorEnter</span><span class="params">(Object obj)</span></span></span><br></pre></td></tr></table></figure>
+<p>尝试锁定对象</p>
+<p>以上 3 个都是 @Deprecated 的方法</p>
+<h2 id="原子操作"><a href="#原子操作" class="headerlink" title="原子操作"></a>原子操作</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">compareAndSwapObject</span><span class="params">(Object o, <span class="keyword">long</span> offset, Object expected, Object x)</span></span></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">compareAndSwapInt</span><span class="params">(Object o, <span class="keyword">long</span> offset, <span class="keyword">int</span> expected, <span class="keyword">int</span> x)</span></span></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">compareAndSwapLong</span><span class="params">(Object o, <span class="keyword">long</span> offset, <span class="keyword">long</span> expected, <span class="keyword">long</span> x)</span></span></span><br></pre></td></tr></table></figure>
+<p>如果变量的值是 expected，则更新成  x，原子更新</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">getAndAddInt</span><span class="params">(Object o, <span class="keyword">long</span> offset, <span class="keyword">int</span> delta)</span></span></span><br><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">getAndAddLong</span><span class="params">(Object o, <span class="keyword">long</span> offset, <span class="keyword">long</span> delta)</span></span></span><br></pre></td></tr></table></figure>
+<p>原子加</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">getAndSetInt(Object o, <span class="keyword">long</span> offset, <span class="keyword">int</span> newValue)</span><br><span class="line">getAndSetLong(Object o, <span class="keyword">long</span> offset, <span class="keyword">long</span> newValue)</span><br><span class="line">getAndSetObject(Object o, <span class="keyword">long</span> offset, Object newValue)</span><br></pre></td></tr></table></figure>
+<p>原子地设置新值和返回旧值</p>
+<h2 id="挂起与恢复"><a href="#挂起与恢复" class="headerlink" title="挂起与恢复"></a>挂起与恢复</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">park</span><span class="params">(<span class="keyword">boolean</span> isAbsolute, <span class="keyword">long</span> time)</span></span></span><br></pre></td></tr></table></figure>
+<p>暂停当前线程</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">unpark</span><span class="params">(Object thread)</span></span></span><br></pre></td></tr></table></figure>
+<p>通知线程恢复</p>
+<p>JDK concurrent 包的锁大部分用这个实现</p>
+<h2 id="内存屏障"><a href="#内存屏障" class="headerlink" title="内存屏障"></a>内存屏障</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">loadFence</span><span class="params">()</span></span></span><br></pre></td></tr></table></figure>
+<p>在该方法之前的所有读操作，一定在load屏障之前执行完成</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">storeFence</span><span class="params">()</span></span></span><br></pre></td></tr></table></figure>
+<p>在该方法之前的所有写操作，一定在store屏障之前执行完成</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">fullFence</span><span class="params">()</span></span></span><br></pre></td></tr></table></figure>
+<p>在该方法之前的所有读写操作，一定在 full 屏障之前执行完成，这个内存屏障相当于上面两个的合体功能</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        
+          
+        
+        <div class="post-tags">
+          
+            <a href="/tags/jdk/" rel="tag"># jdk</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/09/13/jdk-1-8-fork-join/" rel="next" title="【java】Java 1.8 fork / join">
+                <i class="fa fa-chevron-left"></i> 【java】Java 1.8 fork / join
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/04/24/source-note-rocket-mq-concept/" rel="prev" title="【阅读笔记】rocketmq 概念与架构 （一）">
+                【阅读笔记】rocketmq 概念与架构 （一） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Deer</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">42</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">18</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#内存管理"><span class="nav-number">1.</span> <span class="nav-text">内存管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#内存操作"><span class="nav-number">2.</span> <span class="nav-text">内存操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#计算类字段的内存偏移位置"><span class="nav-number">3.</span> <span class="nav-text">计算类字段的内存偏移位置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#非常规的对象实例化"><span class="nav-number">4.</span> <span class="nav-text">非常规的对象实例化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数组操作"><span class="nav-number">5.</span> <span class="nav-text">数组操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#异常"><span class="nav-number">6.</span> <span class="nav-text">异常</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#动态类"><span class="nav-number">7.</span> <span class="nav-text">动态类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#多线程同步"><span class="nav-number">8.</span> <span class="nav-text">多线程同步</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#原子操作"><span class="nav-number">9.</span> <span class="nav-text">原子操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#挂起与恢复"><span class="nav-number">10.</span> <span class="nav-text">挂起与恢复</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#内存屏障"><span class="nav-number">11.</span> <span class="nav-text">内存屏障</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Deer</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.1.2</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/utils.js?v=7.1.2"></script>
+
+  <script src="/js/motion.js?v=7.1.2"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/affix.js?v=7.1.2"></script>
+
+  <script src="/js/schemes/pisces.js?v=7.1.2"></script>
+
+
+
+
+  
+  <script src="/js/scrollspy.js?v=7.1.2"></script>
+<script src="/js/post-details.js?v=7.1.2"></script>
+
+
+
+  
+
+
+  <script src="/js/next-boot.js?v=7.1.2"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

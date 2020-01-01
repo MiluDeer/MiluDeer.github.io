@@ -134,10 +134,13 @@
 <meta property="og:site_name" content="Deer&#39;s blog">
 <meta property="og:description" content="本文分析 redis 在进行主从复制时是如何交互的">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-09-30T12:38:40.894Z">
+<meta property="og:image" content="http://yoursite.com/2019/09/26/source-note-redis-replication/source-note-redis-replication.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/09/26/source-note-redis-replication/source-note-redis-replication-2.jpg">
+<meta property="og:updated_time" content="2019-12-14T14:26:51.302Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="【阅读笔记】redis 主从复制">
 <meta name="twitter:description" content="本文分析 redis 在进行主从复制时是如何交互的">
+<meta name="twitter:image" content="http://yoursite.com/2019/09/26/source-note-redis-replication/source-note-redis-replication.jpg">
 
 
 
@@ -436,27 +439,34 @@
 <a id="more"></a>
 <h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><h3 id="打开主从复制功能"><a href="#打开主从复制功能" class="headerlink" title="打开主从复制功能"></a>打开主从复制功能</h3><p>打开主从复制功能有三种方式</p>
 <ol>
-<li>在配置文件中打开</li>
-<li>在 redis-server 的启动命令行打开</li>
-<li>在 redis-server 运行过程中用命令打开</li>
+<li>在配置文件中设置打开</li>
+<li>在 redis-server 的启动时，用命令行参数打开</li>
+<li>在 redis-server 运行过程中，通过客户端命令打开</li>
 </ol>
 <p>三种方式都是用 replicaof $HOST $IP 命令打开</p>
-<h3 id="同步和命令传播"><a href="#同步和命令传播" class="headerlink" title="同步和命令传播"></a>同步和命令传播</h3><p>复制功能分为同步和命令传播两个操作</p>
+<h3 id="同步和命令传播"><a href="#同步和命令传播" class="headerlink" title="同步和命令传播"></a>同步和命令传播</h3><p>复制功能分为<strong>同步</strong>和<strong>命令传播</strong>两个操作</p>
 <ul>
 <li>同步操作用于将 master 的数据复制到 slave</li>
 <li>命令传播用于让 slave 执行 master 的更新，从而使用数据一致</li>
 </ul>
-<h3 id="复制积压缓冲区（Replication-Backlog）"><a href="#复制积压缓冲区（Replication-Backlog）" class="headerlink" title="复制积压缓冲区（Replication Backlog）"></a>复制积压缓冲区（Replication Backlog）</h3><p>在命令传播的过程中，有可能因为 slave 下线等原因造成数据不一致。当 slave 重新上线后，需要复制缺失的数据。如果将 master 所有数据复制给 slave，可能会造成比较大的开销，所以采用复制积压缓冲区来减少全量复制的需要。当进行命令传播时， master 把命令发送给所有 slave 外还将命令写入复制积压缓冲区。当 slave 由于下线丢失一部分数据时，就可以通过复制积压缓冲区的数据来进行恢复，不需要全量复制数据。除非 slave 下线的时间比较长，造成缺失的数据比复制积压缓冲区还大，那么这时就需要进行全量复制</p>
-<h3 id="replicationCron-函数"><a href="#replicationCron-函数" class="headerlink" title="replicationCron 函数"></a>replicationCron 函数</h3><p>redis 周期（每秒）执行一次 replicationCron 函数。master 会在 replicationCron 进行 slave 存活检查，保活，断开超时连接，清空复制积压缓冲区，调用 bgsave 生成数据文件等操作。slave 在 replicationCron 连接 master。</p>
+<h3 id="复制积压缓冲区（Replication-Backlog）"><a href="#复制积压缓冲区（Replication-Backlog）" class="headerlink" title="复制积压缓冲区（Replication Backlog）"></a>复制积压缓冲区（Replication Backlog）</h3><p>在命令传播的过程中，有可能因为 slave 下线等原因造成数据不一致。当 slave 重新上线后，需要复制缺失的数据。如果将 master 所有数据复制给 slave，可能会造成比较大的开销，所以采用复制积压缓冲区来减少全量复制的需要。当进行命令传播时， master 除了把命令发送给所有 slave 外，还将命令写入复制积压缓冲区。当 slave 由于下线丢失一部分数据时，就可以通过复制积压缓冲区的数据来进行恢复，不需要全量复制数据。除非 slave 下线的时间比较长，造成缺失的数据比复制积压缓冲区还大，那么这时就需要进行全量复制。</p>
+<h3 id="replicationCron-函数"><a href="#replicationCron-函数" class="headerlink" title="replicationCron 函数"></a>replicationCron 函数</h3><p>redis 周期地（每秒）执行 replicationCron 函数。master 会在 replicationCron 进行 slave 存活检查，保活，断开超时连接，清空复制积压缓冲区，调用 bgsave 生成数据文件等操作。slave 在 replicationCron 连接 master。</p>
 <h3 id="同步相关命令介绍"><a href="#同步相关命令介绍" class="headerlink" title="同步相关命令介绍"></a>同步相关命令介绍</h3><ul>
 <li>SLAVEOF 打开主从复制功能</li>
 <li>REPLICAOF 同上</li>
 <li>PING 用于检测对方是否存活，由 master 发给 slave</li>
-<li>REPLCONF 将 slave 的侦听端口发给 master</li>
+<li>REPLCONF 将 slave 的 IP, 侦听端口发给 master</li>
 <li>SYNC 用于全量同步</li>
 <li>PSYNC 用于部分同步</li>
 </ul>
-<h2 id="master-交互过程分析"><a href="#master-交互过程分析" class="headerlink" title="master 交互过程分析"></a>master 交互过程分析</h2><h2 id="slave-交互过程分析"><a href="#slave-交互过程分析" class="headerlink" title="slave 交互过程分析"></a>slave 交互过程分析</h2><h3 id="slave-状态机"><a href="#slave-状态机" class="headerlink" title="slave 状态机"></a>slave 状态机</h3><h2 id="流程图"><a href="#流程图" class="headerlink" title="流程图"></a>流程图</h2>
+<h2 id="同步操作-master-slave-交互过程分析"><a href="#同步操作-master-slave-交互过程分析" class="headerlink" title="同步操作 master - slave 交互过程分析"></a>同步操作 master - slave 交互过程分析</h2><ul>
+<li>全量同步过程</li>
+</ul>
+<p><img src="/2019/09/26/source-note-redis-replication/source-note-redis-replication.jpg" alt="同步流程图"></p>
+<ul>
+<li>命令传播过程<br><img src="/2019/09/26/source-note-redis-replication/source-note-redis-replication-2.jpg" alt="命令传播流程图"></li>
+</ul>
+
       
     </div>
 
@@ -578,7 +588,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">27</span>
+                    <span class="site-state-item-count">42</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -615,7 +625,25 @@
                     
                       
                     
-                    <span class="site-state-item-count">9</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">18</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -653,7 +681,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本概念"><span class="nav-number">1.</span> <span class="nav-text">基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#打开主从复制功能"><span class="nav-number">1.1.</span> <span class="nav-text">打开主从复制功能</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#同步和命令传播"><span class="nav-number">1.2.</span> <span class="nav-text">同步和命令传播</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#复制积压缓冲区（Replication-Backlog）"><span class="nav-number">1.3.</span> <span class="nav-text">复制积压缓冲区（Replication Backlog）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#replicationCron-函数"><span class="nav-number">1.4.</span> <span class="nav-text">replicationCron 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#同步相关命令介绍"><span class="nav-number">1.5.</span> <span class="nav-text">同步相关命令介绍</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#master-交互过程分析"><span class="nav-number">2.</span> <span class="nav-text">master 交互过程分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#slave-交互过程分析"><span class="nav-number">3.</span> <span class="nav-text">slave 交互过程分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#slave-状态机"><span class="nav-number">3.1.</span> <span class="nav-text">slave 状态机</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#流程图"><span class="nav-number">4.</span> <span class="nav-text">流程图</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本概念"><span class="nav-number">1.</span> <span class="nav-text">基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#打开主从复制功能"><span class="nav-number">1.1.</span> <span class="nav-text">打开主从复制功能</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#同步和命令传播"><span class="nav-number">1.2.</span> <span class="nav-text">同步和命令传播</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#复制积压缓冲区（Replication-Backlog）"><span class="nav-number">1.3.</span> <span class="nav-text">复制积压缓冲区（Replication Backlog）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#replicationCron-函数"><span class="nav-number">1.4.</span> <span class="nav-text">replicationCron 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#同步相关命令介绍"><span class="nav-number">1.5.</span> <span class="nav-text">同步相关命令介绍</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#同步操作-master-slave-交互过程分析"><span class="nav-number">2.</span> <span class="nav-text">同步操作 master - slave 交互过程分析</span></a></li></ol></div>
             
 
           </div>
@@ -674,7 +702,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
   <span class="with-love" id="animate">
     <i class="fa fa-user"></i>
   </span>

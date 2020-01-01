@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next gemini" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=sans-serif:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext">
+  
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+<link rel="stylesheet" href="/css/main.css?v=7.1.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.1.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.1.2" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.1.2',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="本文分析 redis 集群如何实现">
+<meta name="keywords" content="redis,阅读笔记">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【阅读笔记】redis 集群">
+<meta property="og:url" content="http://yoursite.com/2019/12/15/source-note-redis-cluster/index.html">
+<meta property="og:site_name" content="Deer&#39;s blog">
+<meta property="og:description" content="本文分析 redis 集群如何实现">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/2019/12/15/source-note-redis-cluster/hand-shake.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/12/15/source-note-redis-cluster/struct.jpg">
+<meta property="og:updated_time" content="2020-01-01T08:06:10.636Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【阅读笔记】redis 集群">
+<meta name="twitter:description" content="本文分析 redis 集群如何实现">
+<meta name="twitter:image" content="http://yoursite.com/2019/12/15/source-note-redis-cluster/hand-shake.jpg">
+
+
+
+
+
+  
+  
+  <link rel="canonical" href="http://yoursite.com/2019/12/15/source-note-redis-cluster/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>【阅读笔记】redis 集群 | Deer's blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Deer's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/15/source-note-redis-cluster/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Deer">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Deer's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">【阅读笔记】redis 集群
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-12-15 11:34:01" itemprop="dateCreated datePublished" datetime="2019-12-15T11:34:01+08:00">2019-12-15</time>
+            
+
+            
+          </span>
+
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文分析 redis 集群如何实现</p>
+<a id="more"></a>
+<h2 id="打开集群模式"><a href="#打开集群模式" class="headerlink" title="打开集群模式"></a>打开集群模式</h2><h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><ul>
+<li>配置文件<br>cluster-enabled yes 打开集群模式<br>cluster-config-file nodes.conf 指定集群配置文件为 nodes.conf，这个文件由 redis 负责读写<br>cluster-node-timeout 5000 设定集群超时时间</li>
+</ul>
+<p>集群模式下只能使用 db0。</p>
+<h3 id="创建集群"><a href="#创建集群" class="headerlink" title="创建集群"></a>创建集群</h3><p>节点首次以 cluster-enabled yes 模式运行时，它们是互相独立的节点，节点通过 MEET 命令认识其他节点，从而形成一个集群</p>
+<p>假设有 3 个独立节点</p>
+<table>
+<thead>
+<tr>
+<th>代号</th>
+<th>IP : 端口</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>127.0.0.1:7000</td>
+</tr>
+<tr>
+<td>B</td>
+<td>127.0.0.1:7001</td>
+</tr>
+<tr>
+<td>C</td>
+<td>127.0.0.1:7002</td>
+</tr>
+</tbody>
+</table>
+<p>命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis-cli -c -p 7000 cluster meet 127.0.0.1 7001</span><br></pre></td></tr></table></figure>
+<p>将 A 介绍给 B，这时 A 就开始和 B 握手（发送 MEET 消息），握手成功后 A 和 B 就组成一个 2 节点的集群。用 cluster nodes 命令可以看到集群的信。这时 A 和 B 各自的 cluster-config-file 也会记录集群的信息。</p>
+<p><img src="/2019/12/15/source-note-redis-cluster/hand-shake.jpg" alt="握手过程"></p>
+<p>之后用命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis-cli -c -p 7000 cluster meet 127.0.0.1 7002</span><br></pre></td></tr></table></figure>
+<p>将 C 介绍给 A， A 在和 C 握手并保存好 C 的信息后，会通过 Gossip 协议给 C 的信息发送给 B，将 B 的信息发送给 C。B 和 C 互相握手后就组成一个 3 节点的集群</p>
+<h3 id="分配-slot"><a href="#分配-slot" class="headerlink" title="分配 slot"></a>分配 slot</h3><p>redis 集群通过分片的方式保存键值对：整个个集群被会成 16384(2^14) 个 slot，所有的键都分配到这 16384 个 slot 中，然后集群中的节点专门负责处理其中指定的 slot。</p>
+<p>在集群创建后，由于没有分配好 slot，整个集群还是处于下线状态，需要将这 16384 个 slot 全部指定后，集群才处于上线状态</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># redis-cli -c -p 7000 cluster info | head -n 1</span><br><span class="line">cluster_state:fail</span><br></pre></td></tr></table></figure>
+<p>使用 cluster addslots 命令分配 slot</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment"># 将 0 到 5000 号 slot 分配给 A</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> `seq 0 5000` ; <span class="keyword">do</span> ./redis-cli -p 7000 cluster addslots <span class="variable">$&#123;i&#125;</span> ; <span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 将 5001 到 10000 号 slot 分配给 B</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> `seq 5001 10000` ; <span class="keyword">do</span> ./redis-cli -p 7001 cluster addslots <span class="variable">$&#123;i&#125;</span> ; <span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 将 10001 到 16383 号 slot 分配给 C</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> `seq 10001 16383` ; <span class="keyword">do</span> ./redis-cli -p 7002 cluster addslots <span class="variable">$&#123;i&#125;</span> ; <span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+<p>分配完成后，集群处于上线状态</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># redis-cli -c -p 7000 cluster info | head -n 1</span><br><span class="line">cluster_state:ok</span><br></pre></td></tr></table></figure>
+<p>上线后，就可以通过客户端向集群任意节点发送命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis-cli -p 7000 <span class="built_in">set</span> k4 val</span><br></pre></td></tr></table></figure>
+<p>由于 key k4 在 8455 这个 slot，而 8455 由 B 节点处理，所以 redis 返回</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(error) MOVED 8455 127.0.0.1:7001</span><br></pre></td></tr></table></figure>
+<p>意思是需要将命令转发到 127.0.0.1:7001 执行，如果给 redis-cli 加上 -c 选项，客户端就会自动处理这种转发</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># redis 返回 OK</span></span><br><span class="line">redis-cli -c -p 7000 <span class="built_in">set</span> k4 val</span><br><span class="line"></span><br><span class="line"><span class="comment"># 返回 val</span></span><br><span class="line">redis-cli -c -p 7000 get k4</span><br></pre></td></tr></table></figure>
+<h3 id="扩、缩容，迁移-slot"><a href="#扩、缩容，迁移-slot" class="headerlink" title="扩、缩容，迁移 slot"></a>扩、缩容，迁移 slot</h3><p>当集群进行扩容或缩容时，需要将 slot 迁移到另外的节点上，这个过程可以在线进行。</p>
+<p>以扩容为例，假设新增了一个节点 D，然后需要将 16383 号 slot 迁移到节点 D</p>
+<p>首先将节点 D 加入群集</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis-cli -c -p 7000 cluster meet 127.0.0.1 7003</span><br></pre></td></tr></table></figure>
+<p>然后通过 setslot 命令进行重新分片</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 对目标节点发送， source_id 是源节点的 ID， 可以通过 cluster nodes 得到</span></span><br><span class="line"><span class="comment"># 目标节点将准备从源节点导入 16383 号 slot 的键值对</span></span><br><span class="line">redis-cli -p 7003 cluster setslot 16383 importing &lt;source_id&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 对源节点发送，target_id 是目标节点 ID</span></span><br><span class="line"><span class="comment"># 源节点准备向目标节点迁移 16383 号 slot 的键值对</span></span><br><span class="line">redis-cli -p 7002 cluster setslot 16383 migrating &lt;target_id&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 对源节点发送，count 是一次迁移的键值对的数量</span></span><br><span class="line"><span class="comment"># 获取 count 个属于 16383 号 slot 的 key</span></span><br><span class="line">redis-cli -p 7002 cluster getkeysinslot 16383 &lt;count&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 对源节点发送，key_name 来源于第 3 步的输出</span></span><br><span class="line"><span class="comment"># 将键值对迁移至目标节点</span></span><br><span class="line">redis-cli -p 7002 migrate &lt;target_ip&gt; &lt;port&gt; &lt;key_name&gt; 0 &lt;time_out&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. 重复步骤 3 和 4，直到所有键值对被迁移完成</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 6. 向集群中所有节点发送</span></span><br><span class="line"><span class="comment"># 表明 16383 号 slot 已经被迁移到目标节点</span></span><br><span class="line">redis-cli -p 7000 cluster setslot 16383 NODE &lt;target_id&gt;</span><br><span class="line">redis-cli -p 7001 cluster setslot 16383 NODE &lt;target_id&gt;</span><br><span class="line">redis-cli -p 7002 cluster setslot 16383 NODE &lt;target_id&gt;</span><br></pre></td></tr></table></figure>
+<p>在数据迁移的过程中，可能会对 16383 号 slot 的数据进行读写</p>
+<p>对于数据读取，有两种情况</p>
+<ol>
+<li><p>如果 key 还在源节点，直接在源节点执行</p>
+</li>
+<li><p>如果 key 不在源节点，返回 ASK 到客户端，让客户端转到目标节点执行</p>
+</li>
+</ol>
+<p>数据写同理</p>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><h3 id="集群数据结构"><a href="#集群数据结构" class="headerlink" title="集群数据结构"></a>集群数据结构</h3><p>关键数据结构有</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 定义本节的集群信息</span></span><br><span class="line"><span class="comment">// 在 redisServer 数据结构里用到</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">clusterState</span> &#123;</span></span><br><span class="line">  clusterNode *myself; <span class="comment">// 节点自己</span></span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  dict *nodes; <span class="comment">// 一个指向 clusterNode 结构的字典</span></span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 记录当前节点中，正在向其他节点迁移的 slot</span></span><br><span class="line">  clusterNode *migrating_slots_to[CLUSTER_SLOTS];</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 记录当前节点中，正在从其他节点导入的 slot，如果 importing_slots_from[i] 不是 NULL，表示现在从这个节点导入数据</span></span><br><span class="line">  clusterNode *importing_slots_from[CLUSTER_SLOTS];</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 表示 slot 的指派信息，如果 slots[i] 指向某个 clusterNode，表示由这个 clusterNode 处理这个 slot</span></span><br><span class="line">  clusterNode *slots[CLUSTER_SLOTS];</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 从节点</span></span><br><span class="line">  clusterNode *mf_slave;</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line">&#125; clusterState</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义集群节点的信息</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">clusterNode</span> &#123;</span></span><br><span class="line">  <span class="keyword">char</span> name[CLUSTER_NAMELEN];</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 这个节点处理的 slots，数组上的每个 bit 指标出这个节点是否处理这个 slot</span></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">char</span> slots[CLUSTER_SLOTS/<span class="number">8</span>];</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 保存所有 slave 节点</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">clusterNode</span> **<span class="title">slaves</span>;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 保存 master 节点</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">clusterNode</span> *<span class="title">slaveof</span>;</span></span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 节点 ip</span></span><br><span class="line">  <span class="keyword">char</span> ip[NET_IP_STR_LEN];</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 节点的服务端口</span></span><br><span class="line">  <span class="keyword">int</span> port;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 节点的集群通信端口，一般是 port + 10000</span></span><br><span class="line">  <span class="keyword">int</span> cport;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// TCP/IP 连接</span></span><br><span class="line">  clusterLink *link;</span><br><span class="line">&#125; clusterNode</span><br><span class="line"></span><br><span class="line"><span class="comment">// clusterLink 表示一个 TCP/IP 连接</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">clusterLink</span> &#123;</span></span><br><span class="line">    <span class="keyword">mstime_t</span> ctime;             <span class="comment">/* Link creation time */</span></span><br><span class="line">    <span class="keyword">int</span> fd;                     <span class="comment">/* TCP socket file descriptor */</span></span><br><span class="line">    sds sndbuf;                 <span class="comment">/* Packet send buffer */</span></span><br><span class="line">    sds rcvbuf;                 <span class="comment">/* Packet reception buffer */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">clusterNode</span> *<span class="title">node</span>;</span>   <span class="comment">/* Node related to this link if any, or NULL */</span></span><br><span class="line">&#125; clusterLink;</span><br></pre></td></tr></table></figure>
+<p><img src="/2019/12/15/source-note-redis-cluster/struct.jpg" alt="集群数据结构"></p>
+<h3 id="集群间发送消息"><a href="#集群间发送消息" class="headerlink" title="集群间发送消息"></a>集群间发送消息</h3><p>集群间消息的数据结构由 clusterMsg 定义</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 消息类型</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CLUSTERMSG_TYPE_PING 0          <span class="comment">/* Ping */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CLUSTERMSG_TYPE_PONG 1          <span class="comment">/* Pong (reply to Ping) */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CLUSTERMSG_TYPE_MEET 2          <span class="comment">/* 握手 */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CLUSTERMSG_TYPE_FAIL 3          <span class="comment">/* 将某个节点标记为失效 */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CLUSTERMSG_TYPE_PUBLISH 4       <span class="comment">/* Pub/Sub Publish propagation */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CLUSTERMSG_TYPE_FAILOVER_AUTH_REQUEST 5 <span class="comment">/* May I failover? */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CLUSTERMSG_TYPE_FAILOVER_AUTH_ACK 6     <span class="comment">/* Yes, you have my vote */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CLUSTERMSG_TYPE_UPDATE 7        <span class="comment">/* 更新 slot 配置 */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CLUSTERMSG_TYPE_MFSTART 8       <span class="comment">/* Pause clients for manual failover */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CLUSTERMSG_TYPE_MODULE 9        <span class="comment">/* Module cluster API message. */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CLUSTERMSG_TYPE_COUNT 10        <span class="comment">/* Total number of message types. */</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">  <span class="keyword">char</span> sig[<span class="number">4</span>];      <span class="comment">// 消息签名，就是 RCmb 这 4 个字符，可以用于分包</span></span><br><span class="line">  <span class="keyword">uint32_t</span> totlen;  <span class="comment">// 消息长度</span></span><br><span class="line">  <span class="keyword">uint16_t</span> type;    <span class="comment">// 消息类型</span></span><br><span class="line">  <span class="keyword">uint16_t</span> count;   <span class="comment">// 某些类型的消息有用</span></span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  <span class="keyword">char</span> sender[CLUSTER_NAMELEN]; <span class="comment">// 发送节点的名字</span></span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">char</span> state;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">char</span> mflags[<span class="number">3</span>];</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 消息正文不同消息类型使用不同的数据结构</span></span><br><span class="line">  <span class="comment">// 有正文的消息类型有 PING，MEET，PONG，FAIL，PUBLISH，UPDATE 和 MODULE</span></span><br><span class="line">  <span class="keyword">union</span> clusterMsgData data;</span><br><span class="line"></span><br><span class="line">&#125; clusterMsg</span><br></pre></td></tr></table></figure>
+<p>在 ServerCron 函数中判断如果集群模式打开，会调用 clusterCron 函数，使节点可以周期性地发送消息，clusterCron 方法每秒执<br>行 10 次</p>
+<p>服务器启动时，调用  clusterInit 函数， clusterInit 函数侦听 server.port + 10000 端口，clusterAcceptHandler 函数用于处理来自 server.port + 10000 的连接请求。 clusterAcceptHandler 收到连接请求后，注册 clusterReadHandler 为 IO 事件处理器</p>
+<p>clusterReadHandler 读出数据包然后调用 clusterProcessPacket 处理消息</p>
+<ul>
+<li><p>发送 MEET 消息<br>MEET 消息用于握手。集群命令在 cluster.c 的 clusterCommand 函数处理，当一个节点接收到 meet 命令时，它会调用 clusterStartHandshake 方法开始握手，clusterStartHandshake 调用 createClusterNode 创建节点信息 clusterNode，并将新的 clusterNode 加入到 server.cluster-&gt;nodes 这个字典中。<br>当执行 clusterCron 时，对新节点进行建立连接，注册 clusterReadHandler 为 IO 事件处理器，并通过 clusterSendPing 发送 MEET 消息。 MEET 消息带有 floor(节点 / 10) 个其他节点的信息（节点名， IP， 集群端口，flag）</p>
+</li>
+<li><p>响应 MEET 消息<br>节点收到 MEET 消息后，创建一个新的 clusterNode 结构并加入到自己的 server.cluster-&gt;nodes 中，然后处理消息中关于其他节点的信息（节点状态，角色等），最后给发送者发出 PONG 消息。</p>
+</li>
+<li><p>发送 PING、PONG 消息<br>MEET、PING 和 PONG 消息都是通过 clusterSendPing 函数进行发送，都会带上节点保存的关于其他节点的信息</p>
+</li>
+<li><p>响应 PING 和 PONG 消息<br>处理消息中关于其他节点的信息，处理 PING 消息的话，还会返回 PONG 消息</p>
+</li>
+<li><p>发送 FAIL 消息<br>在处理 PING 等消息的过程中，如果某个节点被报告为 CLUSTER_NODE_FAIL 并且这个节点也被当前节点检测到为 FAIL，那么当前节点（如果是 master 的话）会调用 clusterSendFail 函数向所有它知道的节点发送 FAIL 消息， FAIL 消息命令失效节点的节点名</p>
+</li>
+<li><p>处理 FAIL 消息<br>将失效节点对应的 clusterNode 中的 flags 标记为 CLUSTER_NODE_FAIL</p>
+</li>
+<li><p>发送 PUBLISH 消息<br>当一个节点收到 publish 命令时，它调用 clusterPropagatePublish 函数向整个集群（所有它知道的节点）发出 PUBLISH 消息</p>
+</li>
+<li><p>处理 PUBLISH 消息<br>调用 pubsubPublishMessage 函数处理</p>
+</li>
+<li><p>UPDATE 消息是为了更新节点的 slot 配置</p>
+</li>
+</ul>
+<h3 id="命令执行"><a href="#命令执行" class="headerlink" title="命令执行"></a>命令执行</h3><ul>
+<li><p>普通命令<br>普通的 redis 命令由 processCommand 函数处理，在 processCommand 中，检查如果 server.cluster_enabled 打开，并且命令有 key 参数，就通过 getNodeByQuery 计算出 key 在哪个节点上，然后通过 clusterRedirectClient 返回 MOVE 或 ASK</p>
+</li>
+<li><p>cluster 命令<br>在 server.c 中注册了由 clusterCommand 处理 cluster 命令，所有的 cluster 子命令在 clusterCommand 处理（cluster 命令没有 key 参数，所以在 processCommand 函数中不会被转发）</p>
+</li>
+<li><p>addslots、delslots 命令<br>addslots、delslots 命令都是用于分配 slot。调用 clusterAddSlot 或 clusterDelSlot 修改 clusterNode.slots 这个 bitmap 的标志位。从这里也可以看出 slot 只是标记，并没有一个 slot 对应的数据结构用于保存数据，仅仅通过 slot 将数据分到不同的节点而已</p>
+</li>
+<li><p>setslot<br>修改 slot 的属性。</p>
+<ul>
+<li><p>setslot (slot) migrating (targetId)<br>将 server.cluster-&gt;migrating_slots_to[slot] 设置为 targetId，这样在 getNodeByQuery 中就会考虑到这个 slot 是不是在 migrating，该节点上有没有对应的 key，如果没有就转发到 targetId</p>
+</li>
+<li><p>setslot (slot) importing (targetId)<br>同 migrating 类似，修改 server.cluster-&gt;importing_slots_from[slot] 为 targetId</p>
+</li>
+<li><p>setslot (slot) stable<br>将 server.cluster-&gt;importing_slots_from[slot] 和 server.cluster-&gt;importing_slots_from[slot] 设置为 NULL</p>
+</li>
+<li><p>setslot (slot) node (targetId)<br>通过 clusterDelSlot 和 clusterAddSlot 将 slot 设置为 targetId 这个节点，同时如果 server.cluster-&gt;importing_slots_from[slot] 有值，就设置为 NULL</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="故障检查以及转移"><a href="#故障检查以及转移" class="headerlink" title="故障检查以及转移"></a>故障检查以及转移</h3><ul>
+<li><p>故障检查<br>每个 clusterCron 周期， 向其他节点发送 PING 消息检查连通情况</p>
+<ol>
+<li>每个节点都会随机挑选 5 个其他节点，选择其中最久没收到 PONG 消息的节点（即 clusterNode.pong_received 的值最小），向其发送 PING 消息</li>
+<li>如果没给目标节点发送 PING 且 now - clusterNode-&gt;pong_received &gt; redisServer.cluster_node_timeout/2（cluster_node_timeout 默认是 15000)，向其发送 PING</li>
+</ol>
+<p>在每个 clusterCron 周期检查每个节点，如果向节点发送了 PING 且 now - clusterNode-&gt;ping_sent &gt; redisServer.cluster_node_timeout，则认为该节点<em>可能失效</em>，记录为 CLUSTER_NODE_PFAIL</p>
+<p>如果在收到其他节点的 PING/PONG/FAIL 消息中，如果有 (server.cluster-&gt;size / 2) + 1 个节点记录该 CLUSTER_NODE_PFAIL 节点的状态也是 CLUSTER_NODE_PFAIL 或 CLUSTER_NODE_FAIL（在 clusterProcessGossipSection 函数处理），则认为该节点<em>已经失效</em>，将该节点的状态记录为 CLUSTER_NODE_FAIL（FAIL 消息的话，直接将节点设置为 CLUSTER_NODE_FAIL）</p>
+<p>节点将失效节点的信息通过 FAIL 消息广播出去</p>
+</li>
+<li><p>故障转移</p>
+<ul>
+<li>自动故障转移<ol>
+<li>每个 clusterCron 周期， slave 节点会调用 clusterHandleSlaveFailover 函数，如果它的 master 失效，它就向其他节点广播 CLUSTERMSG_TYPE_FAILOVER_AUTH_REQUEST 消息请求投票；</li>
+<li>master 节点收到 CLUSTERMSG_TYPE_FAILOVER_AUTH_REQUEST 消息后，节点判断能否投票给请求投票方（在 clusterSendFailoverAuthIfNeeded 处理，只允许 master 失效的 slave 节点发起投票，且当前时间 - 该节点上次投票时间 &gt; server.cluster_node_timeout * 2 才会投），然后给发起节点发送 CLUSTERMSG_TYPE_FAILOVER_AUTH_ACK 消息；</li>
+<li>发起投票的节点收到 CLUSTERMSG_TYPE_FAILOVER_AUTH_ACK 后，server.cluster-&gt;failover_auth_count 加 1，当 server.cluster-&gt;failover_auth_count &gt; (server.cluster-&gt;size / 2) + 1 （在 clusterHandleSlaveFailover 处理），slave 切换到 master 模式（clusterFailoverReplaceYourMaster 函数），然后广播 PONG 消息给所有节点更新信息。</li>
+</ol>
+</li>
+<li>人工故障转移<ol>
+<li>可以用 cluster failover 命令进行人工故障转移。如果 slave 节点可以成为 master（在 clusterHandleManualFailover 函数中检查 server.cluster-&gt;mf_master_offset），如果不能，就返回；如果可以，slave 节点向 master 发送 CLUSTERMSG_TYPE_MFSTART 消息，master 收到 CLUSTERMSG_TYPE_MFSTART 后就停止向 clinet 提供服务一段时间（CLUSTER_MF_TIMEOUT * 2， CLUSTER_MF_TIMEOUT = 5000 ms），这样其他节点就会认为 master 失效，开始自动故障转移的过程</li>
+<li>如果加上 takeover 参数，就直接将节点设置成 master 而不会进行自动故障转移</li>
+<li>如果加上 force 参数，立即开始 failover，而不检查 offset</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        
+          
+        
+        <div class="post-tags">
+          
+            <a href="/tags/redis/" rel="tag"># redis</a>
+          
+            <a href="/tags/阅读笔记/" rel="tag"># 阅读笔记</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/12/10/lib-note-lombok/" rel="next" title="【笔记】 lombok 使用">
+                <i class="fa fa-chevron-left"></i> 【笔记】 lombok 使用
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/12/15/lib-note-jwt/" rel="prev" title="【笔记】 jwt 使用">
+                【笔记】 jwt 使用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Deer</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">42</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">18</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#打开集群模式"><span class="nav-number">1.</span> <span class="nav-text">打开集群模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#配置"><span class="nav-number">1.1.</span> <span class="nav-text">配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建集群"><span class="nav-number">1.2.</span> <span class="nav-text">创建集群</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分配-slot"><span class="nav-number">1.3.</span> <span class="nav-text">分配 slot</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#扩、缩容，迁移-slot"><span class="nav-number">1.4.</span> <span class="nav-text">扩、缩容，迁移 slot</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实现"><span class="nav-number">2.</span> <span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#集群数据结构"><span class="nav-number">2.1.</span> <span class="nav-text">集群数据结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#集群间发送消息"><span class="nav-number">2.2.</span> <span class="nav-text">集群间发送消息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#命令执行"><span class="nav-number">2.3.</span> <span class="nav-text">命令执行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#故障检查以及转移"><span class="nav-number">2.4.</span> <span class="nav-text">故障检查以及转移</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Deer</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.1.2</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/utils.js?v=7.1.2"></script>
+
+  <script src="/js/motion.js?v=7.1.2"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/affix.js?v=7.1.2"></script>
+
+  <script src="/js/schemes/pisces.js?v=7.1.2"></script>
+
+
+
+
+  
+  <script src="/js/scrollspy.js?v=7.1.2"></script>
+<script src="/js/post-details.js?v=7.1.2"></script>
+
+
+
+  
+
+
+  <script src="/js/next-boot.js?v=7.1.2"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

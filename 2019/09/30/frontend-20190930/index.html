@@ -136,7 +136,7 @@
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/2019/09/30/frontend-20190930/p1.png">
 <meta property="og:image" content="http://yoursite.com/2019/09/30/frontend-20190930/p2.png">
-<meta property="og:updated_time" content="2019-09-30T13:43:56.001Z">
+<meta property="og:updated_time" content="2019-10-08T14:12:09.350Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="前端开发小结 2019-09-30">
 <meta name="twitter:description" content="最近需要开发前端页面，记录学习笔记">
@@ -522,12 +522,12 @@
 </ul>
 <p>基本概念</p>
 <ul>
-<li>Store：就是保存数据的地方，可以把它看成一个容器，整个应用只能有一个 Store。</li>
-<li>State：是 Store 对象包含所有数据。一个 State 对应一个 View，State 的变化，会导致 View 的变化。<br>  注：redux 里的 state 和 react 中的 state 是不同的概念</li>
-<li>Action：Action 是 View 发出的通知，表示 State 要发生变化。Action 有 type 属性的对象。</li>
-<li>Action Creator：View 要发送多少种消息，就会有多少种 Action。如果都手写，会很麻烦。可以定义一个函数来生成 Action，这个函数就叫 Action Creator。</li>
-<li>store.dispatch()：调用后发出 Action。</li>
-<li>Reducer：Store 收到 Action 以后，必须给出一个新的 State，这种 State 的计算过程就叫做 Reducer。Reducer 函数需要是一个纯函数。<br>  reducer 可以拆分成多个小的 reducer，由 combineReducers 组合起来。</li>
+<li>store：就是保存数据的地方，可以把它看成一个容器，整个应用只能有一个 store。</li>
+<li>state：是 store 对象包含所有数据。一个 state 对应一个 view，state 的变化，会导致 view 的变化。<br>  注：redux 里的 state 和 react 中的 state 是不同的概念</li>
+<li>action：action 是 view 发出的通知，表示 state 要发生变化。action 有 type 属性的对象。</li>
+<li>action creator：view 要发送多少种消息，就会有多少种 action。如果都手写，会很麻烦。可以定义一个函数来生成 action，这个函数就叫 action creator。</li>
+<li>store.dispatch()：调用后发出 action。</li>
+<li>reducer：store 收到 action 以后，必须给出一个新的 state，这种 state 的计算过程就叫做 reducer。reducer 函数需要是一个纯函数。<br>  reducer 可以拆分成多个小的 reducer，由 combineReducers 组合起来。</li>
 </ul>
 <p>redux 的一般工作流程如下图：<br><img src="/2019/09/30/frontend-20190930/p1.png" alt="redux 工作流程图"></p>
 <p>store 提供一个 subscribe 函数用于注册监听函数，可以在监听函数中重新渲染页面。</p>
@@ -622,6 +622,10 @@
 
           <div class="post-nav-prev post-nav-item">
             
+              <a href="/2019/12/10/lib-note-lombok/" rel="prev" title="【笔记】 lombok 使用">
+                【笔记】 lombok 使用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
           </div>
         </div>
       
@@ -689,7 +693,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">27</span>
+                    <span class="site-state-item-count">42</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -726,7 +730,25 @@
                     
                       
                     
-                    <span class="site-state-item-count">9</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">18</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -785,7 +807,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
   <span class="with-love" id="animate">
     <i class="fa fa-user"></i>
   </span>

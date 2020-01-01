@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next gemini" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=sans-serif:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext">
+  
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+<link rel="stylesheet" href="/css/main.css?v=7.1.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.1.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.1.2" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.1.2',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="描述 java I/O 模型">
+<meta name="keywords" content="jdk">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【java】Java I&#x2F;O 模型">
+<meta property="og:url" content="http://yoursite.com/2018/09/10/jdk-io-model/index.html">
+<meta property="og:site_name" content="Deer&#39;s blog">
+<meta property="og:description" content="描述 java I/O 模型">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/2018/09/10/jdk-io-model/user-core.png">
+<meta property="og:image" content="http://yoursite.com/2018/09/10/jdk-io-model/reactor.png">
+<meta property="og:image" content="http://yoursite.com/2018/09/10/jdk-io-model/proactor-model.png">
+<meta property="og:updated_time" content="2019-12-22T12:39:11.027Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【java】Java I&#x2F;O 模型">
+<meta name="twitter:description" content="描述 java I/O 模型">
+<meta name="twitter:image" content="http://yoursite.com/2018/09/10/jdk-io-model/user-core.png">
+
+
+
+
+
+  
+  
+  <link rel="canonical" href="http://yoursite.com/2018/09/10/jdk-io-model/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>【java】Java I/O 模型 | Deer's blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Deer's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/10/jdk-io-model/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Deer">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Deer's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">【java】Java I/O 模型
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-09-10 16:58:00" itemprop="dateCreated datePublished" datetime="2018-09-10T16:58:00+08:00">2018-09-10</time>
+            
+
+            
+          </span>
+
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>描述 java I/O 模型</p>
+<a id="more"></a>
+<h2 id="操作系统-IO-相关概念"><a href="#操作系统-IO-相关概念" class="headerlink" title="操作系统 IO 相关概念"></a>操作系统 IO 相关概念</h2><h3 id="内核态-用户态"><a href="#内核态-用户态" class="headerlink" title="内核态 / 用户态"></a>内核态 / 用户态</h3><p>为了限制不同的程序之间的访问能力，防止他们获取别的程序的内存数据，或者随意访问外围设备，CPU 为指令划分了访问等级。而在操作系统中，这将分为内核态和用户态两个等级</p>
+<ul>
+<li>内核态：CPU可以访问内存所有数据，包括外围设备，例如硬盘，网卡。CPU 也可以将自己从一个程序切换到另一个程序</li>
+<li>用户态：只能受限的访问内存，且不允许访问外围设备。占用CPU的能力被剥夺，CPU 可以被抢占</li>
+</ul>
+<p>程序从内核态转换为用户态，或从用户态转换为内核态都需要一定的 CPU 资源</p>
+<h3 id="用户空间、内核空间"><a href="#用户空间、内核空间" class="headerlink" title="用户空间、内核空间"></a>用户空间、内核空间</h3><p>同内核态 / 用户态一样，内存虚拟地址空间也被分为两部分，一部分由内核使用，一部分由用户进程使用。</p>
+<h3 id="IO-模型"><a href="#IO-模型" class="headerlink" title="IO 模型"></a>IO 模型</h3><p>读操作分为<strong>内核准备数据</strong>和将数据从<strong>内核拷贝到用户空间</strong>两个阶段，如图</p>
+<p><img src="/2018/09/10/jdk-io-model/user-core.png" alt="用户态与核心态"></p>
+<p>同样，写操作也分为从用户空间拷贝数据到内核，再从内核写数据到设备两个阶段</p>
+<h2 id="Linux-系统-I-O-模型"><a href="#Linux-系统-I-O-模型" class="headerlink" title="Linux 系统 I/O 模型"></a>Linux 系统 I/O 模型</h2><h3 id="关于同步，阻塞的解释"><a href="#关于同步，阻塞的解释" class="headerlink" title="关于同步，阻塞的解释"></a>关于同步，阻塞的解释</h3><p>同步和异步：描述的是用户线程与内核的交互方式</p>
+<ul>
+<li>同步是指用户线程发起 IO 请求后<strong>需要等待或者轮询</strong>内核 IO 操作完成后才能继续执行</li>
+<li>异步是指用户线程发起 IO 请求后仍继续执行自身指令（不等待），当内核 IO 操作完成后会<strong>通知用户线程</strong>，或者<strong>调用</strong>用户线程注册的回调函数</li>
+</ul>
+<p>阻塞和非阻塞：描述的是用户线程<strong>调用</strong>内核 IO 操作的方式</p>
+<ul>
+<li>阻塞是指 IO 操作需要<strong>彻底完成后才返回</strong>到用户空间</li>
+<li>而非阻塞是指 IO 操作<strong>被调用后立即返回</strong>给用户一个状态值，无需等到 IO 操作彻底完成</li>
+</ul>
+<p>一个 IO 操作其实分成了两个步骤：发起 IO 请求和实际的 IO 操作</p>
+<ul>
+<li>同步 IO 和异步 IO 的区别就在于第二个步骤是否阻塞，如果实际的 IO 读写阻塞请求进程，那么就是同步 IO</li>
+<li>阻塞 IO 和非阻塞 IO 的区别在于第一步，发起 IO 请求是否会被阻塞，如果阻塞直到完成那么就是传统的阻塞 IO，如果不阻塞那么就是非阻塞 IO</li>
+</ul>
+<h3 id="Linux-的几种-I-O-模型"><a href="#Linux-的几种-I-O-模型" class="headerlink" title="Linux 的几种 I/O 模型"></a>Linux 的几种 I/O 模型</h3><ol>
+<li>同步阻塞IO（Blocking IO）</li>
+<li>同步非阻塞IO（Non-blocking IO）</li>
+<li>IO多路复用（IO Multiplexing）</li>
+<li>异步IO</li>
+<li>信号驱动式IO（很少用，不解释）</li>
+</ol>
+<h4 id="同步阻塞-IO"><a href="#同步阻塞-IO" class="headerlink" title="同步阻塞 IO"></a>同步阻塞 IO</h4><p>最简单的 IO 模型，用户线程在读写时被阻塞</p>
+<p>应用程序为了执行读写操作，会调用相应的一个系统调用，将系统控制权交给内核（用户态到内核态切换），然后就进行等待（就是被阻塞）。用户线程这时不能做任何事情。内核开始执行这个系统调用，执行完毕后复制数据到用户态内存，向用户线程返回响应。用户线程得到响应后，就不再阻塞，并进行后面的工作。</p>
+<h4 id="同步非阻塞"><a href="#同步非阻塞" class="headerlink" title="同步非阻塞"></a>同步非阻塞</h4><p>在同步阻塞的基础上，用户线程读写时，不被阻塞，而是立即返回，之后用户线程不断发起 IO 请求。</p>
+<p>数据未到达时系统返回一状态值，数据到达后才真正读取数据，为了拿到数据，需不断轮询，<strong>无谓地消耗了大量的 CPU</strong>，一般<strong>很少直接使用</strong>这种模型，而是在其他 IO 模型中使用非阻塞 IO 这一特性</p>
+<h4 id="IO多路复用"><a href="#IO多路复用" class="headerlink" title="IO多路复用"></a>IO多路复用</h4><p>多路复用有一个选择器（Selector），将需要处理的 Channel （其实就是 socket）注册到选择器上。然后轮询 Selector（调用 select 并阻塞线程）。当有 Channel 准备完成，可以进行操作（读，写，连接）时，select 会返回。这时用户线程需要迭代所有 SelectionKey（对应 Channel 的网络事件） 并做相应的业务处理。</p>
+<p>另一种多路复用是 epoll，将 socket 注册到 epoll（由 epoll_create 创建），将注册需要处理的网络事件。然后轮询（调用 epoll_wait，阻塞线程）。当可以进行操作时，epoll_wait 返回，且返回<strong>所有准备好</strong>的网络事件，用户线程只需要处理已经准备好的网络事件</p>
+<p>当数十万并发连接存在时，epoll 和 select 的区别比较明显。在这种情况下，可能每一毫秒只有数百个活跃的连接，同时其余数十万连接在这一毫秒是非活跃的，Selector 将会浪费大量时间在查询哪些非活跃的连接上。而 epoll 可以节省时间。</p>
+<p>另外，每次调用 select，需要把 fd 集合从用户态拷贝到内核态，而 select 支持的文件描述符数量太小从单个连接的处理流程看，多路复用有点像同步阻塞 IO，但多路复用使得用户可以在一个线程内同时处理多个 socket 的 IO 请求。</p>
+<h4 id="异步IO"><a href="#异步IO" class="headerlink" title="异步IO"></a>异步IO</h4><p>调用发出后，系统立刻返回，实际处理这个调用的函数在完成后，通过状态、通知和回调来通知调用者的输入输出操作。异步IO的工作机制是：告知内核启动某个操作，并让内核在整个操作完成后通知</p>
+<h2 id="Java-I-O-模型"><a href="#Java-I-O-模型" class="headerlink" title="Java I/O 模型"></a>Java I/O 模型</h2><p>jdk 提供了几种 I/O 模型</p>
+<ol>
+<li>bio，采用同步阻塞模型，JDK 1.4开始支持</li>
+<li>nio，采用多路复用模型，JDK 1.4开始支持</li>
+<li>aio，采用异步 IO 模型，JDK 1.7开始支持</li>
+</ol>
+<h2 id="Reactor-模式"><a href="#Reactor-模式" class="headerlink" title="Reactor 模式"></a>Reactor 模式</h2><p>reactor 模式建立在多路复用的基础上，这个模式有两个主要角色：事件分离器（dispatcher），事件处理器（handler）</p>
+<ul>
+<li>事件分离器：处理读写，连接等行为，通过由线程池实现</li>
+<li>事件处理器：同一个线程实现，实现事件循环，不断调用多路分离函数 select （或 epoll_wait）。当有某个事件被激活时，调用关联的事件处理器处理</li>
+</ul>
+<p>reactor 处理流程如下</p>
+<p><img src="/2018/09/10/jdk-io-model/reactor.png" alt="reactor-model"></p>
+<h2 id="Proactor-模式"><a href="#Proactor-模式" class="headerlink" title="Proactor 模式"></a>Proactor 模式</h2><p>proactor 模式建立在异步 IO 上。</p>
+<p>用户线程将 AsynchronousOperation（读/写等）、Proactor 以及操作完成时的 CompletionHandler 注册到 AsynchronousOperationProcessor。</p>
+<p>当用户线程调用异步 API 后，用户线程继续执行自己的任务，AsynchronousOperationProcessor 会开启独立的内核线程执行异步操作，实现真正的异步读写。当异步 IO 操作完成时，将调用 CompletionHandler</p>
+<p>处理流程如下：</p>
+<p><img src="/2018/09/10/jdk-io-model/proactor-model.png" alt="proactor-model"></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        
+          
+        
+        <div class="post-tags">
+          
+            <a href="/tags/jdk/" rel="tag"># jdk</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/09/07/jdk-hotspot-memory/" rel="next" title="【java】HotSpot 虚拟机 java 对象分配与回收">
+                <i class="fa fa-chevron-left"></i> 【java】HotSpot 虚拟机 java 对象分配与回收
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/09/13/jdk-1-8-fork-join/" rel="prev" title="【java】Java 1.8 fork / join">
+                【java】Java 1.8 fork / join <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Deer</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">42</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">18</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#操作系统-IO-相关概念"><span class="nav-number">1.</span> <span class="nav-text">操作系统 IO 相关概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#内核态-用户态"><span class="nav-number">1.1.</span> <span class="nav-text">内核态 / 用户态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用户空间、内核空间"><span class="nav-number">1.2.</span> <span class="nav-text">用户空间、内核空间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IO-模型"><span class="nav-number">1.3.</span> <span class="nav-text">IO 模型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Linux-系统-I-O-模型"><span class="nav-number">2.</span> <span class="nav-text">Linux 系统 I/O 模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#关于同步，阻塞的解释"><span class="nav-number">2.1.</span> <span class="nav-text">关于同步，阻塞的解释</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Linux-的几种-I-O-模型"><span class="nav-number">2.2.</span> <span class="nav-text">Linux 的几种 I/O 模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#同步阻塞-IO"><span class="nav-number">2.2.1.</span> <span class="nav-text">同步阻塞 IO</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#同步非阻塞"><span class="nav-number">2.2.2.</span> <span class="nav-text">同步非阻塞</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IO多路复用"><span class="nav-number">2.2.3.</span> <span class="nav-text">IO多路复用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#异步IO"><span class="nav-number">2.2.4.</span> <span class="nav-text">异步IO</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java-I-O-模型"><span class="nav-number">3.</span> <span class="nav-text">Java I/O 模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reactor-模式"><span class="nav-number">4.</span> <span class="nav-text">Reactor 模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Proactor-模式"><span class="nav-number">5.</span> <span class="nav-text">Proactor 模式</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Deer</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.1.2</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/utils.js?v=7.1.2"></script>
+
+  <script src="/js/motion.js?v=7.1.2"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/affix.js?v=7.1.2"></script>
+
+  <script src="/js/schemes/pisces.js?v=7.1.2"></script>
+
+
+
+
+  
+  <script src="/js/scrollspy.js?v=7.1.2"></script>
+<script src="/js/post-details.js?v=7.1.2"></script>
+
+
+
+  
+
+
+  <script src="/js/next-boot.js?v=7.1.2"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

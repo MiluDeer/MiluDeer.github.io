@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next gemini" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=sans-serif:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext">
+  
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+<link rel="stylesheet" href="/css/main.css?v=7.1.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.1.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.1.2" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.1.2',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="描述 java 1.8 的 fork / join 功能">
+<meta name="keywords" content="jdk">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【java】Java 1.8 fork &#x2F; join">
+<meta property="og:url" content="http://yoursite.com/2018/09/13/jdk-1-8-fork-join/index.html">
+<meta property="og:site_name" content="Deer&#39;s blog">
+<meta property="og:description" content="描述 java 1.8 的 fork / join 功能">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/2018/09/13/jdk-1-8-fork-join/setp-1.png">
+<meta property="og:image" content="http://yoursite.com/2018/09/13/jdk-1-8-fork-join/setp-2.png">
+<meta property="og:updated_time" content="2019-12-22T13:13:27.785Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【java】Java 1.8 fork &#x2F; join">
+<meta name="twitter:description" content="描述 java 1.8 的 fork / join 功能">
+<meta name="twitter:image" content="http://yoursite.com/2018/09/13/jdk-1-8-fork-join/setp-1.png">
+
+
+
+
+
+  
+  
+  <link rel="canonical" href="http://yoursite.com/2018/09/13/jdk-1-8-fork-join/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>【java】Java 1.8 fork / join | Deer's blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Deer's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/13/jdk-1-8-fork-join/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Deer">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Deer's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">【java】Java 1.8 fork / join
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-09-13 17:12:00" itemprop="dateCreated datePublished" datetime="2018-09-13T17:12:00+08:00">2018-09-13</time>
+            
+
+            
+          </span>
+
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>描述 java 1.8 的 fork / join 功能</p>
+<a id="more"></a>
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>Fork/Join 框架是一个实现了 ExecutorService 接口的<strong>多线程</strong>处理器。它可以把一个大的任务划分为若干个小的任务<strong>并发执行</strong>，小任务执行完成后，再合并成最终结果。框架使用了<strong>工作窃取（work-stealing）</strong>算法，空闲的线程可以从满负荷的线程中窃取任务来帮忙执行。</p>
+<p>在 JDK 1.8 中，实现 Fork/Join 的关键类：</p>
+<ul>
+<li>ForkJoinPool：用于执行任务的线程池</li>
+<li>WorkQueue：ForkJoinPool 的内部类，实现一个双向队列，用于支持工作窃取算法（内部使用）</li>
+<li>ForkJoinWorkThread：执行任务的线程</li>
+<li>ForkJoinTask：表示  Fork/Join 任务，实现了 Future 接口。主要使用两个子类 RecursiveTask 和 RecursiveAction</li>
+</ul>
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><p>要计算一个数组的所有元素的数，可以使用 fork/join。 如果数组的长度小于阈值，则直接进行计算；否则将数组分成两部分，分别计算两部分的结果，然后合并。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FJTask</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">long</span> [] array = <span class="keyword">new</span> <span class="keyword">long</span>[<span class="number">400</span>];</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span> ; i &lt; array.length ; ++i) &#123;</span><br><span class="line">      array[i] = i+<span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 创建 fork/join 线程池</span></span><br><span class="line">    ForkJoinPool fjp = <span class="keyword">new</span> ForkJoinPool(<span class="number">2</span>); <span class="comment">// 最大并发数2</span></span><br><span class="line">    ForkJoinTask&lt;Long&gt; task = <span class="keyword">new</span> SumTask(array, <span class="number">0</span>, array.length);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 计算并记录时间</span></span><br><span class="line">    <span class="keyword">long</span> startTime = System.currentTimeMillis();</span><br><span class="line">    Long result = fjp.invoke(task);</span><br><span class="line">    <span class="keyword">long</span> endTime = System.currentTimeMillis();</span><br><span class="line"></span><br><span class="line">    System.out.println(<span class="string">"Fork/join sum: "</span> + result + <span class="string">" in "</span> + (endTime - startTime) + <span class="string">" ms."</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 求和任务</span></span><br><span class="line">  <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">SumTask</span> <span class="keyword">extends</span> <span class="title">RecursiveTask</span>&lt;<span class="title">Long</span>&gt; </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">1L</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> THRESHOLD = <span class="number">50</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">long</span>[] array;</span><br><span class="line">    <span class="keyword">int</span> start;</span><br><span class="line">    <span class="keyword">int</span> end;</span><br><span class="line"></span><br><span class="line">    SumTask(<span class="keyword">long</span>[] array, <span class="keyword">int</span> start, <span class="keyword">int</span> end) &#123;</span><br><span class="line">      <span class="keyword">this</span>.array = array;</span><br><span class="line">      <span class="keyword">this</span>.start = start;</span><br><span class="line">      <span class="keyword">this</span>.end = end;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> Long <span class="title">compute</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="comment">// 如果任务足够小，直接计算</span></span><br><span class="line">      <span class="keyword">if</span> (end - start &lt;= THRESHOLD) &#123;</span><br><span class="line">        <span class="keyword">return</span> sum(start, end);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 将任务分解成多个小任务</span></span><br><span class="line">        <span class="keyword">int</span> middle = (end + start) / <span class="number">2</span>;</span><br><span class="line">        SumTask subtask1 = <span class="keyword">new</span> SumTask(array, start, middle);</span><br><span class="line">        SumTask subtask2 = <span class="keyword">new</span> SumTask(array, middle, end);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 计算</span></span><br><span class="line">        invokeAll(subtask1, subtask2);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 合并结果</span></span><br><span class="line">        Long subresult1 = subtask1.join();</span><br><span class="line">        Long subresult2 = subtask2.join();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> subresult1 + subresult2;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 求和</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">long</span> <span class="title">sum</span><span class="params">(<span class="keyword">int</span> start, <span class="keyword">int</span> end)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">long</span> sum = <span class="number">0</span>;</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i = start; i &lt; end; ++i) &#123;</span><br><span class="line">        sum += array[i];</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> sum;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="执行过程"><a href="#执行过程" class="headerlink" title="执行过程"></a>执行过程</h2><ol>
+<li><p>主线程执行 fjp.invoke(task); 后就阻塞，等待计算完成<br>invoke 内部会调用 externalPush 将任务 SumTask(0-400) 放到任务队列，然后生成一个 ForkJoinWorkerThread（假设是 Thread-1）执行任务代码</p>
+</li>
+<li><p>Thread-1 执行任务 SumTask(0-400)<br>对于大于阈值的任务， SumTask 分解成两个子任务 SumTask(0-200)、SumTask(200-400)。<br>在 invokeAll 方法中，会执行 SumTask(200-400) 的 fork 方法，产生线程 Thread-2 执行任务，然后执行 SumTask(0-200) 任务，待 T2 执行完成后再返回</p>
+</li>
+<li><p>Thread-2 执行任务 SumTask(200-400)<br>这时任务分配图如下， Thread-1 执行 SumTask(0-200)，Thread-2 执行 SumTask(200-400)<br><img src="/2018/09/13/jdk-1-8-fork-join/setp-1.png" alt="setp-1.png"></p>
+</li>
+<li><p>假设在 sum 方法打断点，两个线程都执行到断点<br>这时任务分配图如下：<br><img src="/2018/09/13/jdk-1-8-fork-join/setp-2.png" alt="setp-2.png"><br>由于线程数已经是 2，所以 fork 方法不会产生新线程，而是将任务 push 到线程各自的工作队列。因此，到断点位置，各线程的状态是</p>
+</li>
+</ol>
+<ul>
+<li>Thread-1 执行 SumTask(0-50) 的求和计算， SumTask(0-400)、SumTask(0-200) 和 SumTask(0-100) 在调用栈中，SumTask(100-200) 和 SumTask(50-100) 在工作队列中</li>
+<li>Thread-2 执行 SumTask(200-250) 的求和计算，SumTask(200-400) 和 SumTask(200-300) 在调用栈中，SumTask(300-400) 和 SumTask(250-300) 在工作队列中</li>
+</ul>
+<ol start="5">
+<li>让 Thread-2 执行，Thread-2 会依次计算</li>
+</ol>
+<ul>
+<li>SumTask(200-250)、SumTask(250-300)</li>
+<li>SumTask(200-300) 执行合并</li>
+<li>SumTask(300-350) 、SumTask(350-400)（从 SumTask(300-400) 分解出来）</li>
+<li>SumTask(300-400) 执行合并</li>
+<li>SumTask(200-400) 执行合并<br>到这里， Thread-2 的所有计算任务执行完成，但 Thread-1 的工作队列中还有 SumTask(50-100) 和 SumTask(100-200) 。Thread-2 会调用 ForkJoinPool 的 scan 方法从 Thread-1 的工作队列中“窃取”任务来执行，于是 Thread-2 继续计算</li>
+<li>SumTask(100-150)、SumTask(150-200)（从 SumTask(100-250) 分解出来）</li>
+<li>SumTask(100-250) 执行合并</li>
+<li>SumTask(50-100)<br>到这里 Thread-2  都没有任务可执行，Thread-2 进入等待状态</li>
+</ul>
+<ol start="6">
+<li>让 Thread-1 执行，Thread-1 会依次计算</li>
+</ol>
+<ul>
+<li>SumTask(0-50)</li>
+<li>SumTask(0-100) 执行合，其中 SumTask(50-100) 是 Thread-2 的计算结果</li>
+<li>SumTask(0-200) 执行合，其中 SumTask(100-200) 是 Thread-2 的计算结果</li>
+<li>SumTask(0-400) 执行合，其中 SumTask(200-400) 是 Thread-2 的计算结果</li>
+</ul>
+<ol start="7">
+<li>至此所有计算任务执行完成，fjp.invoke(task);  返回最后计算结果</li>
+</ol>
+<h2 id="JDK-1-8-API-参考"><a href="#JDK-1-8-API-参考" class="headerlink" title="JDK 1.8 API 参考"></a>JDK 1.8 API 参考</h2><h3 id="ForkJoinPool"><a href="#ForkJoinPool" class="headerlink" title="ForkJoinPool"></a>ForkJoinPool</h3><p>ForkJoinPool 既是用于执行任务的线程池，也是用户提交任务的入口</p>
+<p><strong><em>构造方法</em></strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ForkJoinPool</span><span class="params">()</span></span></span><br></pre></td></tr></table></figure>
+<p>构造一个并行度等于 CPU 核心个数的 ForkJoinPool，CPU 核心个数由 Runtime.getRuntime().availableProcessors() 取得，其余参数采用默认值</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ForkJoinPool</span><span class="params">(<span class="keyword">int</span> parallelism)</span></span></span><br></pre></td></tr></table></figure>
+<p>构造一个并行度是 parallelism 的 ForkJoinPool，其余参数采用默认值</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ForkJoinPool</span><span class="params">(<span class="keyword">int</span> parallelism, ForkJoinWorkerThreadFactory factory, UncaughtExceptionHandler handler, <span class="keyword">boolean</span> asyncMode)</span></span></span><br></pre></td></tr></table></figure>
+<p>构造一个并行度是 parallelism 的 ForkJoinPool，指定了  factory， handler 和 asyncMode</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="title">ForkJoinPool</span><span class="params">(<span class="keyword">int</span> parallelism, ForkJoinWorkerThreadFactory factory, UncaughtExceptionHandler handler, <span class="keyword">int</span> mode, String workerNamePrefix)</span></span></span><br></pre></td></tr></table></figure>
+<p>上面所有公共构造方法都用这个实现最终的构造</p>
+<p>还有一个静态实例通过 ForkJoinPools.commonPool() 获取，大部分场景都可以通过这个静态实例使用 Fork/Join。</p>
+<p><strong><em>主要 public 成员方法</em></strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; <span class="function">T <span class="title">invoke</span><span class="params">(ForkJoinTask&lt;T&gt; task)</span></span></span><br></pre></td></tr></table></figure>
+<p>提交一个 ForkJoinTask, 并等待计算完成，返回计算结果</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">execute</span><span class="params">(ForkJoinTask&lt;?&gt; task)</span></span></span><br></pre></td></tr></table></figure>
+<p>提交一个 ForkJoinTask，并立即返回（无结果）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; <span class="function">ForkJoinTask&lt;T&gt; <span class="title">submit</span><span class="params">(ForkJoinTask&lt;T&gt; task)</span></span></span><br></pre></td></tr></table></figure>
+<p>提交一个 ForkJoinTask，返回入参 task</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; List&lt;Future&lt;T&gt;&gt; invokeAll(Collection&lt;? extends Callable&lt;T&gt;&gt; tasks)</span><br></pre></td></tr></table></figure>
+<p>将容器里的 Callable 转换为 ForkJoinTask.AdaptedCallable 并提交，返回一个 ForkJoinTask.AdaptedCallable （实现了 Future 接口）的 List</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">awaitTermination</span><span class="params">(<span class="keyword">long</span> timeout, TimeUnit unit)</span></span></span><br></pre></td></tr></table></figure>
+<p>等待线程池终止。由于 commonPool() 不会终止，对 commonPool() 调用 awaitTermination 等同于调用  awaitQuiescence</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">awaitQuiescence</span><span class="params">(<span class="keyword">long</span> timeout, TimeUnit unit)</span></span></span><br></pre></td></tr></table></figure>
+<p>如果在 ForkJoinTask 中调用（当前线程是 ForkJoinWorkerThread），等价于调用  helpQuiescePool，否则等待线程池静止</p>
+<h3 id="ForkJoinTask"><a href="#ForkJoinTask" class="headerlink" title="ForkJoinTask"></a>ForkJoinTask</h3><p>表示在 ForkJoinPool 中运行的 task 的抽象基类。ForkJoinTask 是类似于线程的实体，但比线程要轻很多。大量的 task 可以被少量线程管理。</p>
+<p><strong><em>主要 public 成员方法</em></strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> ForkJoinTask&lt;V&gt; <span class="title">fork</span><span class="params">()</span></span></span><br></pre></td></tr></table></figure>
+<p>调度任务，如果当前线程是 ForkJoinWorkerThread，则加到线程的工作队列，否则加到 ForkJoinPool.common</p>
+<p>条件允许的话会创建新的线程来处理这个任务</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> V <span class="title">join</span><span class="params">()</span></span></span><br></pre></td></tr></table></figure>
+<p>返回任务的计算结果，如果计算未完成，会阻塞等待。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> V <span class="title">invoke</span><span class="params">()</span></span></span><br></pre></td></tr></table></figure>
+<p>执行任务计算，如果需要的话，会阻塞等待。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">invokeAll</span><span class="params">(ForkJoinTask&lt;?&gt; t1, ForkJoinTask&lt;?&gt; t2)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">invokeAll</span><span class="params">(ForkJoinTask&lt;?&gt;... tasks)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T extends ForkJoinTask&lt;?&gt;&gt; Collection&lt;T&gt; <span class="title">invokeAll</span><span class="params">(Collection&lt;T&gt; tasks)</span></span></span><br></pre></td></tr></table></figure>
+<p>这几个方法都是执行多个任务</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        
+          
+        
+        <div class="post-tags">
+          
+            <a href="/tags/jdk/" rel="tag"># jdk</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/09/10/jdk-io-model/" rel="next" title="【java】Java I/O 模型">
+                <i class="fa fa-chevron-left"></i> 【java】Java I/O 模型
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/09/14/jdk-1-8-unsafe/" rel="prev" title="【java】Java 1.8 Unsafe">
+                【java】Java 1.8 Unsafe <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Deer</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">42</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">18</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#示例"><span class="nav-number">2.</span> <span class="nav-text">示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#执行过程"><span class="nav-number">3.</span> <span class="nav-text">执行过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JDK-1-8-API-参考"><span class="nav-number">4.</span> <span class="nav-text">JDK 1.8 API 参考</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ForkJoinPool"><span class="nav-number">4.1.</span> <span class="nav-text">ForkJoinPool</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ForkJoinTask"><span class="nav-number">4.2.</span> <span class="nav-text">ForkJoinTask</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Deer</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.1.2</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/utils.js?v=7.1.2"></script>
+
+  <script src="/js/motion.js?v=7.1.2"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/affix.js?v=7.1.2"></script>
+
+  <script src="/js/schemes/pisces.js?v=7.1.2"></script>
+
+
+
+
+  
+  <script src="/js/scrollspy.js?v=7.1.2"></script>
+<script src="/js/post-details.js?v=7.1.2"></script>
+
+
+
+  
+
+
+  <script src="/js/next-boot.js?v=7.1.2"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

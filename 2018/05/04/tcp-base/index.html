@@ -141,7 +141,7 @@
 <meta property="og:image" content="http://yoursite.com/2018/05/04/tcp-base/TCP%204%20次挥手.png">
 <meta property="og:image" content="http://yoursite.com/2018/05/04/tcp-base/TCP-缓冲区.jpg">
 <meta property="og:image" content="http://yoursite.com/2018/05/04/tcp-base/示例.png">
-<meta property="og:updated_time" content="2019-09-23T13:24:18.428Z">
+<meta property="og:updated_time" content="2019-12-22T14:11:49.854Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="TCP 协议基础">
 <meta name="twitter:description" content="描述一些 TCP 基本特性">
@@ -569,7 +569,7 @@
 <p> 原因二：防止类似与“三次握手”中提到了的“已经失效的连接请求报文段”出现在本连接中。送完最后一个确认报文后，在这个2MSL时间中，就可以使本连接持续的时间内所产生的所有报文段都从网络中消失。这样新的连接中不会出现旧连接的请求报文。</p>
 </li>
 </ol>
-<h1 id="数据发送"><a href="#数据发送" class="headerlink" title="数据发送"></a>数据发送</h1><p>TCP 数据包的发送和接收由操作系统完成，操作系统不会去处理 TCP 数据包里面的数据。它将原始数据打包成 TCP 数据包发送出去，收接 TCP 数据包并组装好发给应用程序。   </p>
+<h1 id="数据发送"><a href="#数据发送" class="headerlink" title="数据发送"></a>数据发送</h1><p>TCP 数据包的发送和接收由操作系统完成，操作系统不会去处理 TCP 数据包里面的数据。它将原始数据打包成 TCP 数据包发送出去，收接 TCP 数据包并组装好发给应用程序。</p>
 <p>应用程序不需要关心如何发送和接收 TCP 数据包，它应该将这些数据看作字节流，根据应用层协议进行解析</p>
 <h2 id="确认应答机制"><a href="#确认应答机制" class="headerlink" title="确认应答机制"></a>确认应答机制</h2><p>连接建立越来后，就可以使用该连接发送数据。发送的时候，TCP 协议为每个包编号（sequence number，简称 SEQ），以便<strong>接收的一方按照顺序还原</strong>。万一发生丢包，也可以知道丢失的是哪一个包。</p>
 <p>第一个包（其实就是 SYN 包）的编号是一个随机数。为了便于理解，这里就把它称为 1 号包。假定这个包的负载长度是 100 字节，那么下一个包的编号应该是 101，接收方就知道应该按什么顺序还原数据。</p>
@@ -676,8 +676,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2019/04/24/source-note-rocket-mq-concept/" rel="prev" title="【阅读笔记】rocketmq 概念与架构 （一）">
-                【阅读笔记】rocketmq 概念与架构 （一） <i class="fa fa-chevron-right"></i>
+              <a href="/2018/09/07/jdk-reference/" rel="prev" title="【java】Java 引用">
+                【java】Java 引用 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -747,7 +747,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">27</span>
+                    <span class="site-state-item-count">42</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -784,7 +784,25 @@
                     
                       
                     
-                    <span class="site-state-item-count">9</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">18</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -843,7 +861,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
   <span class="with-love" id="animate">
     <i class="fa fa-user"></i>
   </span>

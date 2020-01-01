@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next gemini" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=sans-serif:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext">
+  
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+<link rel="stylesheet" href="/css/main.css?v=7.1.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.1.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.1.2" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.1.2',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="转载自 https://www.tuicool.com/articles/jqqMbaj">
+<meta name="keywords" content="转载,mybatis">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【转载】如何细粒度地控制你的MyBatis二级缓存(mybatis-enhanced-cache插件实现)">
+<meta property="og:url" content="http://yoursite.com/2019/12/30/reference-mybatis-second-cache/index.html">
+<meta property="og:site_name" content="Deer&#39;s blog">
+<meta property="og:description" content="转载自 https://www.tuicool.com/articles/jqqMbaj">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/2019/12/30/reference-mybatis-second-cache/nINBJ3n.png">
+<meta property="og:image" content="http://yoursite.com/2019/12/30/reference-mybatis-second-cache/QzmqIbb.png">
+<meta property="og:image" content="http://yoursite.com/2019/12/30/reference-mybatis-second-cache/zuqEzq.png">
+<meta property="og:updated_time" content="2019-12-30T12:34:33.335Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【转载】如何细粒度地控制你的MyBatis二级缓存(mybatis-enhanced-cache插件实现)">
+<meta name="twitter:description" content="转载自 https://www.tuicool.com/articles/jqqMbaj">
+<meta name="twitter:image" content="http://yoursite.com/2019/12/30/reference-mybatis-second-cache/nINBJ3n.png">
+
+
+
+
+
+  
+  
+  <link rel="canonical" href="http://yoursite.com/2019/12/30/reference-mybatis-second-cache/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>【转载】如何细粒度地控制你的MyBatis二级缓存(mybatis-enhanced-cache插件实现) | Deer's blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Deer's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/30/reference-mybatis-second-cache/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Deer">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Deer's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">【转载】如何细粒度地控制你的MyBatis二级缓存(mybatis-enhanced-cache插件实现)
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-12-30 20:34:01" itemprop="dateCreated datePublished" datetime="2019-12-30T20:34:01+08:00">2019-12-30</time>
+            
+
+            
+          </span>
+
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>转载自 <a href="https://www.tuicool.com/articles/jqqMbaj" target="_blank" rel="noopener">https://www.tuicool.com/articles/jqqMbaj</a></p>
+<a id="more"></a>
+<h2 id="一个关于MyBatis的二级缓存的实际问题"><a href="#一个关于MyBatis的二级缓存的实际问题" class="headerlink" title="一个关于MyBatis的二级缓存的实际问题"></a>一个关于MyBatis的二级缓存的实际问题</h2><p>现有 AMapper.xml 中定义了对数据库表 ATable 的 CRUD 操作，BMapper 定义了对数据库表 BTable 的 CRUD 操作；假设 MyBatis 的二级缓存开启，并且 AMapper 中使用了二级缓存， AMapper 对应的二级缓存为 ACache；除此之外， AMapper 中还定义了一个跟 BTable 有关的查询语句，类似如下所述：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">"selectATableWithJoin"</span> <span class="attr">resultMap</span>=<span class="string">"BaseResultMap"</span> <span class="attr">useCache</span>=<span class="string">"true"</span>&gt;</span></span><br><span class="line">  select * from ATable left join BTable on ....</span><br><span class="line"><span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>执行以下操作：</p>
+<ol>
+<li>执行 AMapper 中的 selectATableWithJoin 操作，此时会将查询到的结果放置到 AMapper 对应的二级缓存 ACache 中；</li>
+<li>执行 BMapper 中对 BTable 的更新操作( update、delete、insert )后， BTable 的数据更新；</li>
+<li>再执行 1 完全相同的查询，这时候会直接从 AMapper 二级缓存 ACache 中取值，将 ACache 中的值直接返回；</li>
+</ol>
+<p>好，问题就出现在第3步上：由于 AMapper 的 selectATableWithJoin 对应的 SQL 语句需要和 BTable 进行 join 查找，而在第 2 步 BTable 的数据已经更新了，但是第 3 步查询的值是第 1 步的缓存值，已经极有可能跟真实数据库结果不一样，即 ACache 中缓存数据过期了！</p>
+<p>总结来看，就是：<br>对于某些使用了 join 连接的查询，如果其关联的表数据发生了更新，join 连接的查询由于先前缓存的原因，导致查询结果和真实数据不同步；从MyBatis 的角度来看，这个问题可以这样表述：对于某些表执行了更新(update、delete、insert)操作后，如何去清空跟这些表有关联的查询语句所造成的缓存。</p>
+<p>当前的 MyBatis 的缓存机制不能很好地处理这一问题，下面我们将从当前的MyBatis的缓存机制入手，分析这一问题。</p>
+<h2 id="当前MyBatis二级缓存的工作机制"><a href="#当前MyBatis二级缓存的工作机制" class="headerlink" title="当前MyBatis二级缓存的工作机制"></a>当前MyBatis二级缓存的工作机制</h2><p><img src="/2019/12/30/reference-mybatis-second-cache/nINBJ3n.png" alt="nINBJ3n.png"></p>
+<p>MyBatis 二级缓存的一个重要特点：即松散的 Cache 缓存管理和维护。一个 Mapper 中定义的增删改查操作只能影响到自己关联的 Cache 对象。如上图所示的 Mapper namespace1 中定义的若干 CRUD 语句，产生的缓存只会被放置到相应关联的 Cache1 中，即 Mapper namespace2, namespace3, namespace4 中的 CRUD 的语句不会影响到 Cache1。可以看出，Mapper 之间的缓存关系比较松散，相互关联的程度比较弱。</p>
+<p>现在再回到上面描述的问题，如果我们将 AMapper 和 BMapper 共用一个 Cache 对象，那么，当 BMapper 执行更新操作时，可以清空对应 Cache 中的所有的缓存数据，这样的话，数据不是也可以保持最新吗？</p>
+<p>确实这个也是一种解决方案，不过，它会使缓存的使用效率变的很低！AMapper 和 BMapper 的任意的更新操作都会将共用的 Cache 清空，会频繁地清空 Cache，导致 Cache 实际的命中率和使用率就变得很低了，所以这种策略实际情况下是不可取的。</p>
+<p>最理想的解决方案就是：对于某些表执行了更新(update、delete、insert)操作后，如何去清空跟这些表有关联的查询语句所造成的缓存；</p>
+<p>这样，就是以很细的粒度管理MyBatis内部的缓存，使得缓存的使用率和准确率都能大大地提升。基于这个思路，我写了一个对应的mybatis-enhanced-cache 缓存插件，可以很好地支持上述的功能。对于上述的例子中，该插件可以实现：当 BMapper 对 BTable 执行了更新操作时，指定清除与 BTable 相关联的 selectATableWithJoin 查询语句在 ACache 中产生的缓存。</p>
+<p>接下来就来看看这个 mybatis-enhanced-cache 插件的设计原理吧</p>
+<h2 id="mybatis-enhanced-cache-插件的设计和工作原理"><a href="#mybatis-enhanced-cache-插件的设计和工作原理" class="headerlink" title="mybatis-enhanced-cache 插件的设计和工作原理"></a>mybatis-enhanced-cache 插件的设计和工作原理</h2><p>该插件主要由两个构件组成： EnhancedCachingExecutor 和 EnhancedCachingManager。</p>
+<ul>
+<li><p>EnhancedCachingExecutor 是针对于Executor的拦截器，拦截Executor的几个关键的方法；</p>
+</li>
+<li><p>EnhancedCachingExecutor 主要做以下几件事：</p>
+</li>
+</ul>
+<ol>
+<li><p>每当有 Executor 执行 query 操作时，<br>1.记录下该查询 StatementId 和 CacheKey，然后将其添加到 EnhancedCachingManager 中；<br>2.记录下该查询 StatementId 和此 StatementId 所属 Mapper 内的 Cache 缓存对象引用，添加到 EnhancedCachingManager 中；</p>
+</li>
+<li><p>每当 Executor 执行了update 操作时，将此 update 操作的 StatementId 传递给 EnhancedCachingManager ，让 EnhancedCachingManager 根据此 update 的 StatementId 的配置，去清空指定的查询语句所产生的缓存；</p>
+</li>
+</ol>
+<p>另一个构件： EnhancedCachingManager ，它也是本插件的核心，它维护着以下几样东西：</p>
+<ol>
+<li>整个 MyBatis 的所有查询所产生的 CacheKey 集合（以 statementId 分类）；</li>
+<li>所有的使用过了的查询的 statementId 及其对应的 Cache 缓存对象的引用；</li>
+<li>update 类型的 StatementId 和查询 StatementId 集合的映射，用于当 Update 类型的语句执行时，根据此映射决定应该清空哪些查询语句产生的缓存；</li>
+</ol>
+<p>如下图所示：</p>
+<p><img src="/2019/12/30/reference-mybatis-second-cache/QzmqIbb.png" alt="QzmqIbb.png"></p>
+<p>工作原理：原理很简单，就是当执行了某个 update 操作时，根据配置信息去清空指定的查询语句在 Cache 中所产生的缓存数据。</p>
+<p>如何获取mybatis-enhanced-cache插件源码</p>
+<ol>
+<li>源码和jar包2合一压缩包</li>
+<li>github 地址，直接 fork 即可：<a href="https://github.com/LuanLouis/mybatis-enhanced-cache" target="_blank" rel="noopener">https://github.com/LuanLouis/mybatis-enhanced-cache</a></li>
+</ol>
+<h2 id="mybatis-enhanced-cache-插件的使用实例"><a href="#mybatis-enhanced-cache-插件的使用实例" class="headerlink" title="mybatis-enhanced-cache 插件的使用实例"></a>mybatis-enhanced-cache 插件的使用实例</h2><ol>
+<li><p>下载 mybatis-enhanced-cache.rar 压缩包 ，解压，将其内的 mybatis-enhanced-cache-0.0.1-SNAPSHOT.jar 添加到项目的 classpath 下；</p>
+</li>
+<li><p>配置MyBatis配置文件如下：</p>
+</li>
+</ol>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">plugin</span> <span class="attr">interceptor</span>=<span class="string">"org.luanlouis.mybatis.plugin.cache.EnhancedCachingExecutor"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dependency"</span> <span class="attr">value</span>=<span class="string">"dependencys.xml"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"cacheEnabled"</span> <span class="attr">value</span>=<span class="string">"true"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>其中，&lt;property name=”dependency”&gt; 中的 value 属性是 StatementId 之间的依赖关系的配置文件路径。</p>
+<ol start="3">
+<li>配置StatementId之间的依赖关系</li>
+</ol>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">statements</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">statement</span> <span class="attr">id</span>=<span class="string">"com.louis.mybatis.dao.DepartmentsMapper.updateByPrimaryKey"</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">observer</span> <span class="attr">id</span>=<span class="string">"com.louis.mybatis.dao.EmployeesMapper.selectWithDepartments"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">statement</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">statements</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>&lt;statement&gt; 节点配置的是更新语句的 statementId，其内的子节点 &lt;observer&gt; 配置的是当更新语句执行后，应当清空缓存的查询语句的StatementId。子节点 &lt;observer&gt; 可以有多个。</p>
+<p>如上的配置，则说明，如果”com.louis.mybatis.dao.DepartmentsMapper.updateByPrimaryKey”更新语句执行后，由 “com.louis.mybatis.dao.EmployeesMapper.selectWithDepartments”语句所产生的放置在Cache缓存中的数据都都会被清空。</p>
+<h2 id="配置DepartmentsMapper-xml-和-EmployeesMapper-xml"><a href="#配置DepartmentsMapper-xml-和-EmployeesMapper-xml" class="headerlink" title="配置DepartmentsMapper.xml 和 EmployeesMapper.xml"></a>配置DepartmentsMapper.xml 和 EmployeesMapper.xml</h2><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="UTF-8" ?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" &gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">mapper</span> <span class="attr">namespace</span>=<span class="string">"com.louis.mybatis.dao.DepartmentsMapper"</span> &gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">cache</span>&gt;</span><span class="tag">&lt;/<span class="name">cache</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">resultMap</span> <span class="attr">id</span>=<span class="string">"BaseResultMap"</span> <span class="attr">type</span>=<span class="string">"com.louis.mybatis.model.Department"</span> &gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">id</span> <span class="attr">column</span>=<span class="string">"DEPARTMENT_ID"</span> <span class="attr">property</span>=<span class="string">"departmentId"</span> <span class="attr">jdbcType</span>=<span class="string">"DECIMAL"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">result</span> <span class="attr">column</span>=<span class="string">"DEPARTMENT_NAME"</span> <span class="attr">property</span>=<span class="string">"departmentName"</span> <span class="attr">jdbcType</span>=<span class="string">"VARCHAR"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">result</span> <span class="attr">column</span>=<span class="string">"MANAGER_ID"</span> <span class="attr">property</span>=<span class="string">"managerId"</span> <span class="attr">jdbcType</span>=<span class="string">"DECIMAL"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">result</span> <span class="attr">column</span>=<span class="string">"LOCATION_ID"</span> <span class="attr">property</span>=<span class="string">"locationId"</span> <span class="attr">jdbcType</span>=<span class="string">"DECIMAL"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">resultMap</span>&gt;</span></span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line">  <span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">"Base_Column_List"</span> &gt;</span></span><br><span class="line">    DEPARTMENT_ID, DEPARTMENT_NAME, MANAGER_ID, LOCATION_ID</span><br><span class="line">  <span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br><span class="line">  </span><br><span class="line">  <span class="tag">&lt;<span class="name">update</span> <span class="attr">id</span>=<span class="string">"updateByPrimaryKey"</span> <span class="attr">parameterType</span>=<span class="string">"com.louis.mybatis.model.Department"</span> &gt;</span></span><br><span class="line">    update HR.DEPARTMENTS</span><br><span class="line">       set DEPARTMENT_NAME = #&#123;departmentName,jdbcType=VARCHAR&#125;,</span><br><span class="line">           MANAGER_ID = #&#123;managerId,jdbcType=DECIMAL&#125;,</span><br><span class="line">           LOCATION_ID = #&#123;locationId,jdbcType=DECIMAL&#125;</span><br><span class="line">     where DEPARTMENT_ID = #&#123;departmentId,jdbcType=DECIMAL&#125;</span><br><span class="line">  <span class="tag">&lt;/<span class="name">update</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">"selectByPrimaryKey"</span> <span class="attr">resultMap</span>=<span class="string">"BaseResultMap"</span> <span class="attr">parameterType</span>=<span class="string">"java.lang.Integer"</span> &gt;</span></span><br><span class="line">    select</span><br><span class="line">    <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">"Base_Column_List"</span> /&gt;</span></span><br><span class="line">    from HR.DEPARTMENTS</span><br><span class="line">    where DEPARTMENT_ID = #&#123;departmentId,jdbcType=DECIMAL&#125;</span><br><span class="line">  <span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">mapper</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">mapper</span> <span class="attr">namespace</span>=<span class="string">"com.louis.mybatis.dao.EmployeesMapper"</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">cache</span> <span class="attr">eviction</span>=<span class="string">"LRU"</span> <span class="attr">flushInterval</span>=<span class="string">"100000"</span> <span class="attr">size</span>=<span class="string">"10000"</span>/&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">resultMap</span> <span class="attr">id</span>=<span class="string">"BaseResultMap"</span> <span class="attr">type</span>=<span class="string">"com.louis.mybatis.model.Employee"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">id</span> <span class="attr">column</span>=<span class="string">"EMPLOYEE_ID"</span> <span class="attr">jdbcType</span>=<span class="string">"DECIMAL"</span> <span class="attr">property</span>=<span class="string">"employeeId"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">result</span> <span class="attr">column</span>=<span class="string">"FIRST_NAME"</span> <span class="attr">jdbcType</span>=<span class="string">"VARCHAR"</span> <span class="attr">property</span>=<span class="string">"firstName"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">result</span> <span class="attr">column</span>=<span class="string">"LAST_NAME"</span> <span class="attr">jdbcType</span>=<span class="string">"VARCHAR"</span> <span class="attr">property</span>=<span class="string">"lastName"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">result</span> <span class="attr">column</span>=<span class="string">"EMAIL"</span> <span class="attr">jdbcType</span>=<span class="string">"VARCHAR"</span> <span class="attr">property</span>=<span class="string">"email"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">result</span> <span class="attr">column</span>=<span class="string">"PHONE_NUMBER"</span> <span class="attr">jdbcType</span>=<span class="string">"VARCHAR"</span> <span class="attr">property</span>=<span class="string">"phoneNumber"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">result</span> <span class="attr">column</span>=<span class="string">"HIRE_DATE"</span> <span class="attr">jdbcType</span>=<span class="string">"DATE"</span> <span class="attr">property</span>=<span class="string">"hireDate"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">result</span> <span class="attr">column</span>=<span class="string">"JOB_ID"</span> <span class="attr">jdbcType</span>=<span class="string">"VARCHAR"</span> <span class="attr">property</span>=<span class="string">"jobId"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">result</span> <span class="attr">column</span>=<span class="string">"SALARY"</span> <span class="attr">jdbcType</span>=<span class="string">"DECIMAL"</span> <span class="attr">property</span>=<span class="string">"salary"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">result</span> <span class="attr">column</span>=<span class="string">"COMMISSION_PCT"</span> <span class="attr">jdbcType</span>=<span class="string">"DECIMAL"</span> <span class="attr">property</span>=<span class="string">"commissionPct"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">result</span> <span class="attr">column</span>=<span class="string">"MANAGER_ID"</span> <span class="attr">jdbcType</span>=<span class="string">"DECIMAL"</span> <span class="attr">property</span>=<span class="string">"managerId"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">result</span> <span class="attr">column</span>=<span class="string">"DEPARTMENT_ID"</span> <span class="attr">jdbcType</span>=<span class="string">"DECIMAL"</span> <span class="attr">property</span>=<span class="string">"departmentId"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">resultMap</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">"Base_Column_List"</span>&gt;</span></span><br><span class="line">    EMPLOYEE_ID, FIRST_NAME, LAST_NAME, EMAIL, PHONE_NUMBER, HIRE_DATE, JOB_ID, SALARY,</span><br><span class="line">    COMMISSION_PCT, MANAGER_ID, DEPARTMENT_ID</span><br><span class="line">  <span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br><span class="line">  </span><br><span class="line">  <span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">"selectWithDepartments"</span> <span class="attr">parameterType</span>=<span class="string">"java.lang.Integer"</span> <span class="attr">resultMap</span>=<span class="string">"BaseResultMap"</span> <span class="attr">useCache</span>=<span class="string">"true"</span> &gt;</span></span><br><span class="line">    select *</span><br><span class="line">     from HR.EMPLOYEES t left join HR.DEPARTMENTS S ON T.DEPARTMENT_ID = S.DEPARTMENT_ID</span><br><span class="line">    where EMPLOYEE_ID = #&#123;employeeId,jdbcType=DECIMAL&#125;</span><br><span class="line">  <span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br><span class="line">  </span><br><span class="line"><span class="tag">&lt;/<span class="name">mapper</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h2 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a>测试代码</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.louis.mybatis.test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.InputStream;</span><br><span class="line"><span class="keyword">import</span> java.util.Date;</span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;</span><br><span class="line"><span class="keyword">import</span> java.util.Iterator;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"><span class="keyword">import</span> java.util.Map;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.ibatis.io.Resources;</span><br><span class="line"><span class="keyword">import</span> org.apache.ibatis.session.SqlSession;</span><br><span class="line"><span class="keyword">import</span> org.apache.ibatis.session.SqlSessionFactory;</span><br><span class="line"><span class="keyword">import</span> org.apache.ibatis.session.SqlSessionFactoryBuilder;</span><br><span class="line"><span class="keyword">import</span> org.apache.log4j.Logger;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.louis.mybatis.model.Department;</span><br><span class="line"><span class="keyword">import</span> com.louis.mybatis.model.Employee;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * SqlSession 简单查询演示类</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> louluan</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SelectDemo3</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger loger = Logger.getLogger(SelectDemo3.class);</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    InputStream inputStream = Resources.getResourceAsStream(<span class="string">"mybatisConfig.xml"</span>);</span><br><span class="line">    SqlSessionFactoryBuilder builder = <span class="keyword">new</span> SqlSessionFactoryBuilder();</span><br><span class="line">    SqlSessionFactory factory = builder.build(inputStream);</span><br><span class="line"></span><br><span class="line">    SqlSession sqlSession = factory.openSession(<span class="keyword">true</span>);</span><br><span class="line">    SqlSession sqlSession2 = factory.openSession(<span class="keyword">true</span>);</span><br><span class="line">    <span class="comment">//3.使用SqlSession查询</span></span><br><span class="line">    Map&lt;String,Object&gt; params = <span class="keyword">new</span> HashMap&lt;String,Object&gt;();</span><br><span class="line">    params.put(<span class="string">"employeeId"</span>,<span class="number">10</span>);</span><br><span class="line">    <span class="comment">//a.查询工资低于10000的员工</span></span><br><span class="line">    Date first = <span class="keyword">new</span> Date();</span><br><span class="line">    <span class="comment">//第一次查询</span></span><br><span class="line">    List&lt;Employee&gt; result = sqlSession.selectList(<span class="string">"com.louis.mybatis.dao.EmployeesMapper.selectWithDepartments"</span>,params);</span><br><span class="line">    sqlSession.commit();</span><br><span class="line">    checkCacheStatus(sqlSession);</span><br><span class="line">    params.put(<span class="string">"employeeId"</span>, <span class="number">11</span>);</span><br><span class="line">    result = sqlSession.selectList(<span class="string">"com.louis.mybatis.dao.EmployeesMapper.selectWithDepartments"</span>,params);</span><br><span class="line">    sqlSession.commit();</span><br><span class="line">    checkCacheStatus(sqlSession);</span><br><span class="line">    params.put(<span class="string">"employeeId"</span>, <span class="number">12</span>);</span><br><span class="line">    result = sqlSession.selectList(<span class="string">"com.louis.mybatis.dao.EmployeesMapper.selectWithDepartments"</span>,params);</span><br><span class="line">    sqlSession.commit();</span><br><span class="line">    checkCacheStatus(sqlSession);</span><br><span class="line">    params.put(<span class="string">"employeeId"</span>, <span class="number">13</span>);</span><br><span class="line">    result = sqlSession.selectList(<span class="string">"com.louis.mybatis.dao.EmployeesMapper.selectWithDepartments"</span>,params);</span><br><span class="line">    sqlSession.commit();</span><br><span class="line">    checkCacheStatus(sqlSession);</span><br><span class="line">    Department department = sqlSession.selectOne(<span class="string">"com.louis.mybatis.dao.DepartmentsMapper.selectByPrimaryKey"</span>,<span class="number">10</span>);</span><br><span class="line">    department.setDepartmentName(<span class="string">"updated"</span>);</span><br><span class="line">    sqlSession2.update(<span class="string">"com.louis.mybatis.dao.DepartmentsMapper.updateByPrimaryKey"</span>, department);</span><br><span class="line">    sqlSession.commit();</span><br><span class="line">    checkCacheStatus(sqlSession);</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">checkCacheStatus</span><span class="params">(SqlSession sqlSession)</span> </span>&#123;</span><br><span class="line">    loger.info(<span class="string">"------------Cache Status------------"</span>);</span><br><span class="line">    Iterator&lt;String&gt; iter = sqlSession.getConfiguration().getCacheNames().iterator();</span><br><span class="line">    <span class="keyword">while</span>(iter.hasNext()) &#123;</span><br><span class="line">      String it = iter.next();</span><br><span class="line">      loger.info(it+<span class="string">":"</span>+sqlSession.getConfiguration().getCache(it).getSize());</span><br><span class="line">    &#125;</span><br><span class="line">    loger.info(<span class="string">"------------------------------------"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/2019/12/30/reference-mybatis-second-cache/zuqEzq.png" alt="zuqEzq.png"></p>
+<p>结果分析：</p>
+<p>从上述的结果可以看出，前四次执行了”com.louis.mybatis.dao.EmployeesMapper.selectWithDepartments”语句，EmployeesMapper 对应的 Cache 缓存中存储的结果缓存由 1 个增加到 4 个。</p>
+<p>当执行了”com.louis.mybatis.dao.DepartmentsMapper.updateByPrimaryKey”后，EmployeeMapper 对应的缓存 Cache 结果被清空了，即”com.louis.mybatis.dao.DepartmentsMapper.updateByPrimaryKey”更新语句引起了 EmployeeMapper 中的” com.louis.mybatis.dao.EmployeesMapper.selectWithDepartments”缓存的清空。</p>
+<h2 id="作者的话"><a href="#作者的话" class="headerlink" title="作者的话"></a>作者的话</h2><p>该插件的实现周期比较短，尚未经过性能方面的测试，如果果您对此插件有任何意见或者看法，可以留言一起交流和探讨。该插件源码已经放到了Github上，可供大家自由修改，github地址：<a href="https://github.com/LuanLouis/mybatis-enhanced-cache" target="_blank" rel="noopener">https://github.com/LuanLouis/mybatis-enhanced-cache</a></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        
+          
+        
+        <div class="post-tags">
+          
+            <a href="/tags/转载/" rel="tag"># 转载</a>
+          
+            <a href="/tags/mybatis/" rel="tag"># mybatis</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/12/30/reference-list/" rel="next" title="转载文章列表">
+                <i class="fa fa-chevron-left"></i> 转载文章列表
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Deer</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">42</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">18</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#一个关于MyBatis的二级缓存的实际问题"><span class="nav-number">1.</span> <span class="nav-text">一个关于MyBatis的二级缓存的实际问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#当前MyBatis二级缓存的工作机制"><span class="nav-number">2.</span> <span class="nav-text">当前MyBatis二级缓存的工作机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mybatis-enhanced-cache-插件的设计和工作原理"><span class="nav-number">3.</span> <span class="nav-text">mybatis-enhanced-cache 插件的设计和工作原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mybatis-enhanced-cache-插件的使用实例"><span class="nav-number">4.</span> <span class="nav-text">mybatis-enhanced-cache 插件的使用实例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置DepartmentsMapper-xml-和-EmployeesMapper-xml"><span class="nav-number">5.</span> <span class="nav-text">配置DepartmentsMapper.xml 和 EmployeesMapper.xml</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试代码"><span class="nav-number">6.</span> <span class="nav-text">测试代码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#作者的话"><span class="nav-number">7.</span> <span class="nav-text">作者的话</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Deer</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.1.2</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/utils.js?v=7.1.2"></script>
+
+  <script src="/js/motion.js?v=7.1.2"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/affix.js?v=7.1.2"></script>
+
+  <script src="/js/schemes/pisces.js?v=7.1.2"></script>
+
+
+
+
+  
+  <script src="/js/scrollspy.js?v=7.1.2"></script>
+<script src="/js/post-details.js?v=7.1.2"></script>
+
+
+
+  
+
+
+  <script src="/js/next-boot.js?v=7.1.2"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

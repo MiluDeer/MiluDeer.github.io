@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next gemini" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=sans-serif:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext">
+  
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+<link rel="stylesheet" href="/css/main.css?v=7.1.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.1.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.1.2" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.1.2',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="记录有用的工具">
+<meta name="keywords" content="tool">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【工具】 记录有用的工具">
+<meta property="og:url" content="http://yoursite.com/2019/12/22/work-tools/index.html">
+<meta property="og:site_name" content="Deer&#39;s blog">
+<meta property="og:description" content="记录有用的工具">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-12-30T17:26:26.145Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【工具】 记录有用的工具">
+<meta name="twitter:description" content="记录有用的工具">
+
+
+
+
+
+  
+  
+  <link rel="canonical" href="http://yoursite.com/2019/12/22/work-tools/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>【工具】 记录有用的工具 | Deer's blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Deer's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/22/work-tools/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Deer">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Deer's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">【工具】 记录有用的工具
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-12-22 19:37:00" itemprop="dateCreated datePublished" datetime="2019-12-22T19:37:00+08:00">2019-12-22</time>
+            
+
+            
+          </span>
+
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>记录有用的工具</p>
+<a id="more"></a>
+<h2 id="软件列表"><a href="#软件列表" class="headerlink" title="软件列表"></a>软件列表</h2><ul>
+<li>gvim for windows</li>
+<li>wingrep</li>
+<li>jq 命令行 json 解析 <a href="https://stedolan.github.io/jq/#" target="_blank" rel="noopener">https://stedolan.github.io/jq/#</a></li>
+<li>curl <a href="https://curl.haxx.se/" target="_blank" rel="noopener">https://curl.haxx.se/</a></li>
+<li>postman</li>
+<li>soapui</li>
+<li>jd-gui</li>
+<li>Pencil 原型工具 <a href="http://pencil.evolus.vn/" target="_blank" rel="noopener">http://pencil.evolus.vn/</a></li>
+<li>BCompare 比较工具</li>
+<li>Everything</li>
+</ul>
+<h2 id="在线工具"><a href="#在线工具" class="headerlink" title="在线工具"></a>在线工具</h2><ul>
+<li>json package <a href="http://jsonviewer.stack.hu/" target="_blank" rel="noopener">http://jsonviewer.stack.hu/</a></li>
+<li>oschina 在线工具集 <a href="https://tool.oschina.net/" target="_blank" rel="noopener">https://tool.oschina.net/</a></li>
+<li>chinaz 编码/解码工具 <a href="http://tool.chinaz.com/Tools/URLEncode.aspx" target="_blank" rel="noopener">http://tool.chinaz.com/Tools/URLEncode.aspx</a></li>
+<li>cron 工具 <a href="http://cron.qqe2.com/" target="_blank" rel="noopener">http://cron.qqe2.com/</a></li>
+<li>json schema 验证 <a href="https://json-schema-validator.herokuapp.com/" target="_blank" rel="noopener">https://json-schema-validator.herokuapp.com/</a></li>
+</ul>
+<h2 id="vim"><a href="#vim" class="headerlink" title="vim"></a>vim</h2><h3 id="gvim-配置"><a href="#gvim-配置" class="headerlink" title="gvim 配置"></a>gvim 配置</h3><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">source</span> $VIMRUNTIME/vimrc_example.<span class="keyword">vim</span></span><br><span class="line"><span class="keyword">source</span> $VIMRUNTIME/mswin.<span class="keyword">vim</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">behave</span> mswin</span><br><span class="line"></span><br><span class="line"><span class="comment">" Startup &#123;&#123;&#123;</span></span><br><span class="line"><span class="keyword">filetype</span> <span class="built_in">indent</span> plugin <span class="keyword">on</span></span><br><span class="line"><span class="comment">" vim 文件折叠方式为 marker</span></span><br><span class="line"><span class="keyword">augroup</span> ft_vim</span><br><span class="line">  au!</span><br><span class="line">  <span class="keyword">au</span> FileType <span class="keyword">vim</span> <span class="keyword">setlocal</span> foldmethod=marker</span><br><span class="line"><span class="keyword">augroup</span> END</span><br><span class="line"><span class="comment">" &#125;&#125;&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">" General &#123;&#123;&#123;</span></span><br><span class="line"><span class="comment">" 不要vim模仿vi模式，建议设置，否则会有很多不兼容的问题</span></span><br><span class="line"><span class="keyword">set</span> nocompatible</span><br><span class="line"><span class="keyword">set</span> nobackup</span><br><span class="line"><span class="keyword">set</span> noswapfile</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">history</span>=<span class="number">1024</span></span><br><span class="line"><span class="comment">" 自动改变 vim 的当前目录为打开的文件所在目录</span></span><br><span class="line"><span class="keyword">set</span> autochdir</span><br><span class="line"><span class="comment">" 自动折向上下的行</span></span><br><span class="line"><span class="keyword">set</span> whichwrap=<span class="keyword">b</span>,s,&lt;,&gt;,[,]</span><br><span class="line"><span class="comment">" 删除 UTF-8 文件 BOM</span></span><br><span class="line"><span class="keyword">set</span> nobomb</span><br><span class="line"><span class="comment">" Vim 的默认寄存器和系统剪贴板共享</span></span><br><span class="line"><span class="keyword">set</span> clipboard+=unnamed</span><br><span class="line"><span class="comment">" 设置 alt 键不映射到菜单栏</span></span><br><span class="line"><span class="keyword">set</span> winaltkeys=<span class="keyword">no</span></span><br><span class="line"><span class="comment">" &#125;&#125;&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">" Lang &amp; Encoding &#123;&#123;&#123;</span></span><br><span class="line"><span class="comment">" 文件编码</span></span><br><span class="line"><span class="keyword">set</span> encoding=utf-<span class="number">8</span></span><br><span class="line"><span class="keyword">set</span> fileencodings=utf-<span class="number">8</span>,chinese,latin-<span class="number">1</span>,cp936</span><br><span class="line"><span class="keyword">if</span> <span class="built_in">has</span>(<span class="string">"win32"</span>)</span><br><span class="line">  <span class="keyword">set</span> fileencoding=chinese</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="keyword">set</span> fileencoding=utf-<span class="number">8</span></span><br><span class="line"><span class="keyword">endif</span></span><br><span class="line"><span class="comment">"解决菜单乱码</span></span><br><span class="line"><span class="keyword">source</span> $VIMRUNTIME/delmenu.<span class="keyword">vim</span></span><br><span class="line"><span class="keyword">source</span> $VIMRUNTIME/<span class="keyword">menu</span>.<span class="keyword">vim</span></span><br><span class="line"><span class="comment">"解决consle输出乱码</span></span><br><span class="line"><span class="keyword">language</span> <span class="keyword">messages</span> zh_CN.utf-<span class="number">8</span></span><br><span class="line"><span class="comment">" &#125;&#125;&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">" GUI &#123;&#123;&#123;</span></span><br><span class="line"><span class="comment">" 配置颜色</span></span><br><span class="line">color lucius</span><br><span class="line"><span class="comment">" 光标所在行高亮</span></span><br><span class="line"><span class="keyword">set</span> cursorline</span><br><span class="line"><span class="comment">" 搜索高亮显示</span></span><br><span class="line"><span class="keyword">set</span> hlsearch</span><br><span class="line"><span class="comment">" 显示行号</span></span><br><span class="line"><span class="keyword">set</span> <span class="keyword">number</span></span><br><span class="line"><span class="comment">"最大化窗口</span></span><br><span class="line"><span class="keyword">au</span> GUIEnter * <span class="keyword">simalt</span> ~<span class="keyword">x</span></span><br><span class="line"><span class="comment">" 初始屏幕大小，未设置最大化的时候有用</span></span><br><span class="line"><span class="keyword">set</span> lines=<span class="number">45</span></span><br><span class="line"><span class="keyword">set</span> columns=<span class="number">194</span></span><br><span class="line"><span class="comment">" 字体</span></span><br><span class="line"><span class="keyword">set</span> guifont=Courier\ Ne<span class="variable">w:h18</span></span><br><span class="line"><span class="comment">" &#125;&#125;&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">" Format &#123;&#123;&#123;</span></span><br><span class="line"><span class="comment">" tab 相关设置</span></span><br><span class="line"><span class="keyword">set</span> tabstop=<span class="number">4</span></span><br><span class="line"><span class="keyword">set</span> softtabstop=<span class="number">4</span></span><br><span class="line"><span class="keyword">set</span> <span class="built_in">shiftwidth</span>=<span class="number">4</span></span><br><span class="line"><span class="keyword">syntax</span> <span class="keyword">on</span></span><br><span class="line"><span class="comment">" &#125;&#125;&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">" Keymap &#123;&#123;&#123;</span></span><br><span class="line"><span class="keyword">map</span> <span class="symbol">&lt;F2&gt;</span> zf%</span><br><span class="line"><span class="keyword">map</span> <span class="symbol">&lt;F3&gt;</span> zA</span><br><span class="line"><span class="keyword">map</span> <span class="symbol">&lt;F4&gt;</span> :<span class="keyword">loadview</span> <span class="symbol">&lt;CR&gt;</span></span><br><span class="line"><span class="keyword">map</span> <span class="symbol">&lt;F5&gt;</span> :<span class="keyword">mkview</span> <span class="symbol">&lt;CR&gt;</span></span><br><span class="line"><span class="comment">" &#125;&#125;&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">" Function &#123;&#123;&#123;</span></span><br><span class="line"><span class="keyword">set</span> diffexpr=MyDiff()</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">MyDiff</span><span class="params">()</span></span></span><br><span class="line">  <span class="keyword">let</span> <span class="keyword">opt</span> = <span class="string">'-a --binary '</span></span><br><span class="line">  <span class="keyword">if</span> &amp;diffopt =~ <span class="string">'icase'</span> | <span class="keyword">let</span> <span class="keyword">opt</span> = <span class="keyword">opt</span> . <span class="string">'-i '</span> | <span class="keyword">endif</span></span><br><span class="line">  <span class="keyword">if</span> &amp;diffopt =~ <span class="string">'iwhite'</span> | <span class="keyword">let</span> <span class="keyword">opt</span> = <span class="keyword">opt</span> . <span class="string">'-b '</span> | <span class="keyword">endif</span></span><br><span class="line">  <span class="keyword">let</span> arg1 = <span class="variable">v:fname_in</span></span><br><span class="line">  <span class="keyword">if</span> arg1 =~ <span class="string">' '</span> | <span class="keyword">let</span> arg1 = <span class="string">'"'</span> . arg1 . <span class="string">'"'</span> | <span class="keyword">endif</span></span><br><span class="line">  <span class="keyword">let</span> arg2 = <span class="variable">v:fname_new</span></span><br><span class="line">  <span class="keyword">if</span> arg2 =~ <span class="string">' '</span> | <span class="keyword">let</span> arg2 = <span class="string">'"'</span> . arg2 . <span class="string">'"'</span> | <span class="keyword">endif</span></span><br><span class="line">  <span class="keyword">let</span> arg3 = <span class="variable">v:fname_out</span></span><br><span class="line">  <span class="keyword">if</span> arg3 =~ <span class="string">' '</span> | <span class="keyword">let</span> arg3 = <span class="string">'"'</span> . arg3 . <span class="string">'"'</span> | <span class="keyword">endif</span></span><br><span class="line">  <span class="keyword">let</span> eq = <span class="string">''</span></span><br><span class="line">  <span class="keyword">if</span> $VIMRUNTIME =~ <span class="string">' '</span></span><br><span class="line">    <span class="keyword">if</span> &amp;<span class="keyword">sh</span> =~ <span class="string">'\&lt;cmd'</span></span><br><span class="line">      <span class="keyword">let</span> cmd = <span class="string">'""'</span> . $VIMRUNTIME . <span class="string">'\diff"'</span></span><br><span class="line">      <span class="keyword">let</span> eq = <span class="string">'"'</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">      <span class="keyword">let</span> cmd = <span class="keyword">substitute</span>($VIMRUNTIME, <span class="string">' '</span>, <span class="string">'" '</span>, <span class="string">''</span>) . <span class="string">'\diff"'</span></span><br><span class="line">    <span class="keyword">endif</span></span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="keyword">let</span> cmd = $VIMRUNTIME . <span class="string">'\diff'</span></span><br><span class="line">  <span class="keyword">endif</span></span><br><span class="line">  <span class="keyword">silent</span> <span class="keyword">execute</span> <span class="string">'!'</span> . cmd . <span class="string">' '</span> . <span class="keyword">opt</span> . arg1 . <span class="string">' '</span> . arg2 . <span class="string">' &gt; '</span> . arg3 . eq</span><br><span class="line"><span class="keyword">endfunction</span></span><br><span class="line"><span class="comment">" &#125;&#125;&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">" Plugin &#123;&#123;&#123;</span></span><br><span class="line"><span class="keyword">call</span> plug#begin(<span class="string">'~/.vim/plugged'</span>)</span><br><span class="line"><span class="comment">" 状态栏插件</span></span><br><span class="line">Plug <span class="string">'vim-airline/vim-airline'</span></span><br><span class="line"><span class="comment">" 目录树插件</span></span><br><span class="line">Plug <span class="string">'scrooloose/nerdtree'</span></span><br><span class="line"><span class="comment">" 文本对齐插件</span></span><br><span class="line">Plug <span class="string">'godlygeek/tabular'</span></span><br><span class="line"><span class="comment">" 方便 html 的编辑</span></span><br><span class="line">Plug <span class="string">'mattn/emmet-vim'</span></span><br><span class="line"><span class="comment">" 代码补全</span></span><br><span class="line">Plug <span class="string">'MarcWeber/vim-addon-mw-utils'</span></span><br><span class="line">Plug <span class="string">'tomtom/tlib_vim'</span></span><br><span class="line">Plug <span class="string">'garbas/vim-snipmate'</span></span><br><span class="line">Plug <span class="string">'honza/vim-snippets'</span></span><br><span class="line"><span class="comment">" 使用 Git 命令</span></span><br><span class="line">Plug <span class="string">'tpope/vim-fugitive'</span></span><br><span class="line"><span class="keyword">call</span> plug#end()</span><br><span class="line"><span class="keyword">set</span> laststatus=<span class="number">2</span></span><br><span class="line"><span class="comment">" 自动打开 NERDTree</span></span><br><span class="line"><span class="comment">" autocmd vimenter * NERDTree</span></span><br><span class="line"><span class="comment">" 开启/关闭nerdtree快捷键</span></span><br><span class="line"><span class="keyword">map</span> <span class="symbol">&lt;C-f&gt;</span> :NERDTreeToggle<span class="symbol">&lt;CR&gt;</span></span><br><span class="line"><span class="keyword">let</span> NERDTreeShowBookmarks=<span class="number">1</span>  <span class="comment">" 开启Nerdtree时自动显示Bookmarks</span></span><br><span class="line"><span class="comment">" 当NERDTree为剩下的唯一窗口时自动关闭</span></span><br><span class="line"><span class="keyword">autocmd</span> bufenter * <span class="keyword">if</span> (<span class="built_in">winnr</span>(<span class="string">"$"</span>) == <span class="number">1</span> &amp;&amp; <span class="built_in">exists</span>(<span class="string">"b:NERDTree"</span>) &amp;&amp; <span class="variable">b:NERDTree</span>.isTabTree()) | q | <span class="keyword">endif</span></span><br><span class="line"><span class="comment">" &#125;&#125;&#125;</span></span><br></pre></td></tr></table></figure>
+<h3 id="vim-插件"><a href="#vim-插件" class="headerlink" title="vim 插件"></a>vim 插件</h3><p>vim-plug  插件管理器<br>下载地址 <a href="https://github.com/junegunn/vim-plug" target="_blank" rel="noopener">https://github.com/junegunn/vim-plug</a><br>下载后保存到 ${VIM_HOME}/vim81/autoload</p>
+<p>file_line.vim<br>下载地址  <a href="http://www.vim.org/scripts/script.php?script_id=2184" target="_blank" rel="noopener">http://www.vim.org/scripts/script.php?script_id=2184</a><br>保存到 ${VIM_HOME}/vimfiles/plugin</p>
+<p>例如可以配合 grepwin ：<br>C:\Program Files (x86)\Vim\vim81\gvim “%path%:%line%”</p>
+<p>主题<br>下载地址 <a href="https://raw.githubusercontent.com/jonathanfilip/vim-lucius/master/colors/lucius.vim" target="_blank" rel="noopener">https://raw.githubusercontent.com/jonathanfilip/vim-lucius/master/colors/lucius.vim</a></p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p>VIM 键盘映射 <a href="https://www.cnblogs.com/softwaretesting/archive/2011/09/28/2194515.html" target="_blank" rel="noopener">https://www.cnblogs.com/softwaretesting/archive/2011/09/28/2194515.html</a></p>
+<h2 id="maven"><a href="#maven" class="headerlink" title="maven"></a>maven</h2><h3 id="查看插件帮助"><a href="#查看插件帮助" class="headerlink" title="查看插件帮助"></a>查看插件帮助</h3><figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn <span class="built_in">help</span>:describe -DgroupId=org.apache.maven.plugins -DartifactId=maven-compiler-plugin -Dversion=<span class="number">3</span>.<span class="number">8</span>.<span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>查看插件明细</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn <span class="built_in">help</span>:describe -DgroupId=org.apache.maven.plugins -DartifactId=maven-compiler-plugin -Dversion=<span class="number">3</span>.<span class="number">8</span>.<span class="number">1</span> -Dgoal=compile -Ddetail</span><br></pre></td></tr></table></figure>
+<p>maven 插件的帮助手册在 jar 的 plugin-help.xml 中定义<br>在 plugin.xml 的 mojo -&gt; phase 节点可以看出插件默认绑定的阶段</p>
+<h3 id="apache-maven-插件"><a href="#apache-maven-插件" class="headerlink" title="apache maven 插件"></a>apache maven 插件</h3><p>apache mave 插件列表 <a href="https://maven.apache.org/plugins/index.html" target="_blank" rel="noopener">https://maven.apache.org/plugins/index.html</a></p>
+<h4 id="常用-apache-mave-插件"><a href="#常用-apache-mave-插件" class="headerlink" title="常用 apache mave 插件"></a>常用 apache mave 插件</h4><ul>
+<li><p>maven-compiler-plugin<br>编译插件<br><a href="https://maven.apache.org/plugins/maven-compiler-plugin/" target="_blank" rel="noopener">https://maven.apache.org/plugins/maven-compiler-plugin/</a></p>
+</li>
+<li><p>maven-jar-plugin<br>打包成 jar 的插件<br><a href="https://maven.apache.org/plugins/maven-jar-plugin/" target="_blank" rel="noopener">https://maven.apache.org/plugins/maven-jar-plugin/</a></p>
+</li>
+<li><p>maven-shade-plugin<br>将依赖的 jar 打散，然后打包到当前 jar<br><a href="http://maven.apache.org/plugins/maven-shade-plugin/" target="_blank" rel="noopener">http://maven.apache.org/plugins/maven-shade-plugin/</a></p>
+</li>
+<li><p>maven-checkstyle-plugin<br>检查代码风格<br><a href="https://maven.apache.org/plugins/maven-checkstyle-plugin/" target="_blank" rel="noopener">https://maven.apache.org/plugins/maven-checkstyle-plugin/</a></p>
+</li>
+<li><p>maven-release-plugin<br>发布项目<br><a href="http://maven.apache.org/components/maven-release/maven-release-plugin/" target="_blank" rel="noopener">http://maven.apache.org/components/maven-release/maven-release-plugin/</a></p>
+</li>
+</ul>
+<h4 id="其它插件"><a href="#其它插件" class="headerlink" title="其它插件"></a>其它插件</h4><ul>
+<li><p>git-commit-id-plugin<br>将 git 信息提取出来放到一个文件<br><a href="https://github.com/git-commit-id/maven-git-commit-id-plugin" target="_blank" rel="noopener">https://github.com/git-commit-id/maven-git-commit-id-plugin</a><br>maven id <a href="https://mvnrepository.com/artifact/pl.project13.maven/git-commit-id-plugin" target="_blank" rel="noopener">https://mvnrepository.com/artifact/pl.project13.maven/git-commit-id-plugin</a></p>
+</li>
+<li><p>checksum-maven-plugin<br>产生校验和<br><a href="http://checksum-maven-plugin.nicoulaj.net/" target="_blank" rel="noopener">http://checksum-maven-plugin.nicoulaj.net/</a></p>
+</li>
+<li><p>spring-boot-maven-plugin<br>spring boot 打包插件<br><a href="https://docs.spring.io/spring-boot/docs/current/maven-plugin/usage.html" target="_blank" rel="noopener">https://docs.spring.io/spring-boot/docs/current/maven-plugin/usage.html</a></p>
+</li>
+<li><p>jacoco-maven-plugin<br>测试覆盖率报告插件<br><a href="https://www.eclemma.org/jacoco/trunk/doc/maven.html" target="_blank" rel="noopener">https://www.eclemma.org/jacoco/trunk/doc/maven.html</a></p>
+</li>
+<li><p>findbugs-maven-plugin<br>FindBug 插件（注：FindBug 已经没维护，可以用 SpotBug 代替）<br><a href="https://gleclaire.github.io/findbugs-maven-plugin/index.html" target="_blank" rel="noopener">https://gleclaire.github.io/findbugs-maven-plugin/index.html</a></p>
+</li>
+<li><p>spotbugs-maven-plugin<br>java 代码静态检查，可以代替 FindBug<br><a href="https://spotbugs.readthedocs.io/en/latest/maven.html" target="_blank" rel="noopener">https://spotbugs.readthedocs.io/en/latest/maven.html</a></p>
+</li>
+</ul>
+<h2 id="idea"><a href="#idea" class="headerlink" title="idea"></a>idea</h2><p>官方插件库 <a href="https://plugins.jetbrains.com/" target="_blank" rel="noopener">https://plugins.jetbrains.com/</a></p>
+<ul>
+<li><p>Lombok<br>支持 Lombok</p>
+</li>
+<li><p>Mybatis Plugin<br>mybatis 插件， 支持代码补全、语法高亮等功能</p>
+</li>
+<li><p>MyBatis Log Plugin<br>可以将 mybatis 输出的带参数的 SQL 日志复制出来，还原成可以执行的 SQL 语句</p>
+</li>
+<li><p>Spring Assistant<br>辅助写 spring-boot 的 yml 配置，需要在工程加入 spring-boot-configuration-processor 依赖</p>
+</li>
+<li><p>Scala<br>支持 scala 语言</p>
+</li>
+</ul>
+<h2 id="chrome"><a href="#chrome" class="headerlink" title="chrome"></a>chrome</h2><ul>
+<li><p>谷歌访问助手<br>访问 google， 翻墙安装或在 github 搜索</p>
+</li>
+<li><p>JSONView<br>json 美化工具</p>
+</li>
+<li><p>Octotree<br>支持在 github 以树的方式访问文件</p>
+</li>
+<li><p>React Developer Tools<br>React 应用调试工具</p>
+</li>
+<li><p>Tampermonkey<br>用户脚本管理工具</p>
+<ul>
+<li>贴吧全能助手<br>可以方便地访问百度贴吧，免登录，去广告等</li>
+<li>购物党自动比价工具-领取淘宝内部券<br>。。。</li>
+</ul>
+</li>
+</ul>
+<h2 id="git"><a href="#git" class="headerlink" title="git"></a>git</h2><ul>
+<li>git pull 强制覆盖本地文件</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git fetch --all  </span><br><span class="line">git reset --hard origin/master</span><br><span class="line">git pull</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        
+          
+        
+        <div class="post-tags">
+          
+            <a href="/tags/tool/" rel="tag"># tool</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/12/15/lib-note-jwt/" rel="next" title="【笔记】 jwt 使用">
+                <i class="fa fa-chevron-left"></i> 【笔记】 jwt 使用
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/12/25/alg-gossip/" rel="prev" title="【算法】 gossip 协议">
+                【算法】 gossip 协议 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Deer</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">42</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">18</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#软件列表"><span class="nav-number">1.</span> <span class="nav-text">软件列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#在线工具"><span class="nav-number">2.</span> <span class="nav-text">在线工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#vim"><span class="nav-number">3.</span> <span class="nav-text">vim</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#gvim-配置"><span class="nav-number">3.1.</span> <span class="nav-text">gvim 配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#vim-插件"><span class="nav-number">3.2.</span> <span class="nav-text">vim 插件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考"><span class="nav-number">3.3.</span> <span class="nav-text">参考</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#maven"><span class="nav-number">4.</span> <span class="nav-text">maven</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#查看插件帮助"><span class="nav-number">4.1.</span> <span class="nav-text">查看插件帮助</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#apache-maven-插件"><span class="nav-number">4.2.</span> <span class="nav-text">apache maven 插件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#常用-apache-mave-插件"><span class="nav-number">4.2.1.</span> <span class="nav-text">常用 apache mave 插件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#其它插件"><span class="nav-number">4.2.2.</span> <span class="nav-text">其它插件</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#idea"><span class="nav-number">5.</span> <span class="nav-text">idea</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#chrome"><span class="nav-number">6.</span> <span class="nav-text">chrome</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#git"><span class="nav-number">7.</span> <span class="nav-text">git</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Deer</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.1.2</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/utils.js?v=7.1.2"></script>
+
+  <script src="/js/motion.js?v=7.1.2"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/affix.js?v=7.1.2"></script>
+
+  <script src="/js/schemes/pisces.js?v=7.1.2"></script>
+
+
+
+
+  
+  <script src="/js/scrollspy.js?v=7.1.2"></script>
+<script src="/js/post-details.js?v=7.1.2"></script>
+
+
+
+  
+
+
+  <script src="/js/next-boot.js?v=7.1.2"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

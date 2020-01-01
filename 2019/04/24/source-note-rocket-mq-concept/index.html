@@ -135,7 +135,7 @@
 <meta property="og:description" content="介绍 rocketmq 框架与基本概念">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/2019/04/24/source-note-rocket-mq-concept/rocketmq_部署图.jpg">
-<meta property="og:updated_time" content="2019-09-30T12:39:57.750Z">
+<meta property="og:updated_time" content="2020-01-01T07:58:09.003Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="【阅读笔记】rocketmq 概念与架构 （一）">
 <meta name="twitter:description" content="介绍 rocketmq 框架与基本概念">
@@ -490,8 +490,6 @@
 <h2 id="多-master-多-slave模式（同步双写）"><a href="#多-master-多-slave模式（同步双写）" class="headerlink" title="多 master 多 slave模式（同步双写）"></a>多 master 多 slave模式（同步双写）</h2><p>每个 master 配置一个 slave，有多对 master-slave。采用同步双写方式，主备都写成功，向应用返回成功。<br>优点：数据与服务都无单点， master 宕机情况下，消息无延迟，服务可用性与数据可用性都非常高<br>缺点：性能比异步复制模式略低，大约低 10%左右，发送单个消息的 RT 会略高。</p>
 <p>4.5.0 之前主宕机后，备机不能自动切换为主机，4.5.0 开始支持自动切换功能</p>
 <p>异步复制和同步双写的区别是，同步双写在写入消息后，会等待 slave 写完成才返回到应用。</p>
-<hr>
-<p>End</p>
 
       
     </div>
@@ -533,8 +531,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/05/04/tcp-base/" rel="next" title="TCP 协议基础">
-                <i class="fa fa-chevron-left"></i> TCP 协议基础
+              <a href="/2018/09/14/jdk-1-8-unsafe/" rel="next" title="【java】Java 1.8 Unsafe">
+                <i class="fa fa-chevron-left"></i> 【java】Java 1.8 Unsafe
               </a>
             
           </div>
@@ -614,7 +612,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">27</span>
+                    <span class="site-state-item-count">42</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -651,7 +649,25 @@
                     
                       
                     
-                    <span class="site-state-item-count">9</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">18</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -710,7 +726,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
   <span class="with-love" id="animate">
     <i class="fa fa-user"></i>
   </span>

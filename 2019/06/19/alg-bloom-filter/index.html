@@ -126,18 +126,18 @@
 
 
 
-  <meta name="description" content="描述布隆过滤器的功能和实现">
+  <meta name="description" content="描述布隆过滤器的功能以及如何使用 guava 的布隆过滤器">
 <meta name="keywords" content="alg">
 <meta property="og:type" content="article">
 <meta property="og:title" content="【算法】 布隆过滤器（BloomFilters）">
 <meta property="og:url" content="http://yoursite.com/2019/06/19/alg-bloom-filter/index.html">
 <meta property="og:site_name" content="Deer&#39;s blog">
-<meta property="og:description" content="描述布隆过滤器的功能和实现">
+<meta property="og:description" content="描述布隆过滤器的功能以及如何使用 guava 的布隆过滤器">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-09-30T13:42:21.511Z">
+<meta property="og:updated_time" content="2019-12-25T11:18:08.029Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="【算法】 布隆过滤器（BloomFilters）">
-<meta name="twitter:description" content="描述布隆过滤器的功能和实现">
+<meta name="twitter:description" content="描述布隆过滤器的功能以及如何使用 guava 的布隆过滤器">
 
 
 
@@ -432,11 +432,11 @@
       
 
       
-        <p>描述布隆过滤器的功能和实现</p>
+        <p>描述布隆过滤器的功能以及如何使用 guava 的布隆过滤器</p>
 <a id="more"></a>
 <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>为了判断一个元素是否在一个集合里，通常的做法是用 List， Set， HashMap 等容器保存集合的元素，然后在判断元素是否在集合里。然而当数据量<strong>非常大</strong>时，内存可能无法保存所有的元素集合。这时可以考虑用布隆过滤器实现。</p>
 <h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><p>布隆过滤器使用一个 bit 向量或者说 bit 数组实现， 它先将集合的元素散列到 bit 数组上。 当要判断元素是否在集合里时，先计算元素的散列值，如果散列值不在 bit 数组上，则该元素<strong>一定</strong>不在集合里，如果散列值在 bit 数组上，则该元素<strong>可能</strong>会在集合里。</p>
-<p>要实现一个布隆过滤器，首先要选择适当的 bit 数组长度，然后选择多个散列函数。对于每个要加入到集合的元素，用各个散列函数分别计算出散列值，然后 bit 数组对应的下标置 1。 例如考虑一个长度是 8 的 bit 数组用于过滤域名。对于 “baidu”，有 3 个不同的散列函数，计算出来的散列值分别是 1，4 ，7，则 bit[1], bit[4], bit[7] 分别置为 1， 对于“google”，散列值分别是 2，4，5，则 bit[1]，bit[4]，bit[5] 分别置为 1。</p>
+<p>要实现一个布隆过滤器，首先要选择适当的 bit 数组长度，然后选择多个散列函数。对于每个要加入到集合的元素，用各个散列函数分别计算出散列值，然后 bit 数组对应的下标置 1。 例如考虑一个长度是 8 的 bit 数组用于过滤域名。对于 “baidu”，有 3 个不同的散列函数，计算出来的散列值分别是 1，4，7，则 bit[1], bit[4], bit[7] 分别置为 1， 对于“google”，散列值分别是 2，4，5，则 bit[1]，bit[4]，bit[5] 分别置为 1。</p>
 <p>要测试“yahoo”是否在集合里时，可以计算“yahoo”的散列值，如果是 1，2，7（即不是所有散列值都在 bit 数组），则说明这个元素不在集合里，反之则有可能在集合里</p>
 <p><a href="https://www.jasondavies.com/bloomfilter/?spm=a2c4e.11153940.blogcont683602.11.21181fe6hVAGjH" target="_blank" rel="noopener">布隆过滤器演示</a></p>
 <h2 id="布隆过滤器特点"><a href="#布隆过滤器特点" class="headerlink" title="布隆过滤器特点"></a>布隆过滤器特点</h2><ul>
@@ -595,7 +595,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">27</span>
+                    <span class="site-state-item-count">42</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -632,7 +632,25 @@
                     
                       
                     
-                    <span class="site-state-item-count">9</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">18</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -691,7 +709,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
   <span class="with-love" id="animate">
     <i class="fa fa-user"></i>
   </span>
