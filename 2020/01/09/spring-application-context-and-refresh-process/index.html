@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next gemini" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=sans-serif:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext">
+  
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+<link rel="stylesheet" href="/css/main.css?v=7.1.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.1.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.1.2" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.1.2',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="从源码分析 spring application context 以及 application context 的 refresh 过程">
+<meta name="keywords" content="spring">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【spring】 spring Application Context 以及 Application Context refresh 过程">
+<meta property="og:url" content="http://yoursite.com/2020/01/09/spring-application-context-and-refresh-process/index.html">
+<meta property="og:site_name" content="Deer&#39;s blog">
+<meta property="og:description" content="从源码分析 spring application context 以及 application context 的 refresh 过程">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/2020/01/09/spring-application-context-and-refresh-process/application-context-class.jpg">
+<meta property="og:updated_time" content="2020-01-12T08:10:40.733Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【spring】 spring Application Context 以及 Application Context refresh 过程">
+<meta name="twitter:description" content="从源码分析 spring application context 以及 application context 的 refresh 过程">
+<meta name="twitter:image" content="http://yoursite.com/2020/01/09/spring-application-context-and-refresh-process/application-context-class.jpg">
+
+
+
+
+
+  
+  
+  <link rel="canonical" href="http://yoursite.com/2020/01/09/spring-application-context-and-refresh-process/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>【spring】 spring Application Context 以及 Application Context refresh 过程 | Deer's blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Deer's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/01/09/spring-application-context-and-refresh-process/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Deer">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Deer's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">【spring】 spring Application Context 以及 Application Context refresh 过程
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-01-09 21:48:54" itemprop="dateCreated datePublished" datetime="2020-01-09T21:48:54+08:00">2020-01-09</time>
+            
+
+            
+          </span>
+
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>从源码分析 spring application context 以及 application context 的 refresh 过程</p>
+<a id="more"></a>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>application context 是 spring 应用的核心概念，它集多个概念于一身：</p>
+<ul>
+<li>ListableBeanFactory： bean 容器</li>
+<li>ResourceLoader： 资源加载器</li>
+<li>ApplicationEventPublisher： spring 应用事件</li>
+<li>MessageSource： 消息源，主要用于实现国际化</li>
+<li>Environment： spring 运行环境与配置</li>
+</ul>
+<p>每一个 spring 应用都至少有一个 application context。不同的场景会使用不同的具体实现，而不同的实现基本上是配置方式上的不同，所具有的特性基本上是一样的。</p>
+<p>application context 还有层次结构。子 application context 会合并父 application context 的环境配置，响应在父 application context 发布的事件等。</p>
+<h2 id="类层次结构"><a href="#类层次结构" class="headerlink" title="类层次结构"></a>类层次结构</h2><p>application context 基本的类层次结构如下图：</p>
+<p><img src="/2020/01/09/spring-application-context-and-refresh-process/application-context-class.jpg" alt="application-context-class.jpg"></p>
+<ul>
+<li>ApplicationContext 接口就是 application context 的表示，它继承 EnvironmentCapable、 ListableBeanFactory 等多个接口（正好说明 application context 集合了多种概念）</li>
+<li>ConfigurableApplicationContext 按照惯例，配置性的 set 方法都放在 Configurable 接口</li>
+<li>AbstractApplicationContext 是 ApplicationContext 的抽象实现，使用模板方法设计模式，需要子类去实现具体的方法。它继承 DefaultResourceLoader，可以加载资源</li>
+<li>GenericApplicationContext 不允许多次 refresh</li>
+<li>AbstractRefreshableApplicationContext 允许多次 refresh</li>
+</ul>
+<p>大部分场景所使用的 application context 都由 GenericApplicationContext 或 AbstractRefreshableApplicationContext 派生。例如： AnnotationConfigApplicationContext 由 GenericApplicationContext 派生， ClassPathXmlApplicationContext 由 AbstractRefreshableApplicationContext 派生。</p>
+<p>GenericApplicationContext 和 AbstractRefreshableApplicationContext 都通过组合 DefaultListableBeanFactory 来实现 bean 容器的功能，区别是当多次 refresh 时， AbstractRefreshableApplicationContext 的 refreshBeanFactory 方法 （refresh 方法会调用到） 会重建 DefaultListableBeanFactory， 而 GenericApplicationContext 会报错。</p>
+<h2 id="refresh-过程"><a href="#refresh-过程" class="headerlink" title="refresh 过程"></a>refresh 过程</h2><p>refresh 方法在 AbstractApplicationContext 类中定义，它是 application context 中最重要的方法。下面分析 refresh 的过程</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">refresh</span><span class="params">()</span> <span class="keyword">throws</span> BeansException, IllegalStateException </span>&#123;</span><br><span class="line">  <span class="keyword">synchronized</span> (<span class="keyword">this</span>.startupShutdownMonitor) &#123;</span><br><span class="line">    <span class="comment">// 准备 refresh</span></span><br><span class="line">    <span class="comment">// 设置标志， 检查 Environment 是否有必要的属性， 设置 applicationListeners （有的话）</span></span><br><span class="line">    <span class="comment">// 同时子类可以在这里设置额外的 PropertySources</span></span><br><span class="line">    prepareRefresh();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取 beanFactory</span></span><br><span class="line">    <span class="comment">// 如果是 AbstractRefreshableApplicationContext 子类，在这里会 refresh bean factory 并加载 BeanDefinition</span></span><br><span class="line">    <span class="comment">// 加载 BeanDefinition 由子类的 loadBeanDefinitions 实现</span></span><br><span class="line">    ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 给 beanFactory 设定一些固有的配置</span></span><br><span class="line">    prepareBeanFactory(beanFactory);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// Allows post-processing of the bean factory in context subclasses.</span></span><br><span class="line">      <span class="comment">// 空的实现，如果有需要，可以子类重载</span></span><br><span class="line">      postProcessBeanFactory(beanFactory);</span><br><span class="line"></span><br><span class="line">      <span class="comment">// Invoke factory processors registered as beans in the context.</span></span><br><span class="line">      <span class="comment">// 调用 BeanFactoryPostProcessor (BFPP)</span></span><br><span class="line">      invokeBeanFactoryPostProcessors(beanFactory);</span><br><span class="line"></span><br><span class="line">      <span class="comment">// Register bean processors that intercept bean creation.</span></span><br><span class="line">      <span class="comment">// 注册 BeanPostProcessors (BPP)</span></span><br><span class="line">      registerBeanPostProcessors(beanFactory);</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 初始化消息源</span></span><br><span class="line">      initMessageSource();</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 初始化事件广播器</span></span><br><span class="line">      initApplicationEventMulticaster();</span><br><span class="line"></span><br><span class="line">      <span class="comment">// Initialize other special beans in specific context subclasses.</span></span><br><span class="line">      <span class="comment">// 默认是空的</span></span><br><span class="line">      onRefresh();</span><br><span class="line"></span><br><span class="line">      <span class="comment">// Check for listener beans and register them.</span></span><br><span class="line">      <span class="comment">// 将 application context listener 放到 Event Multicaster</span></span><br><span class="line">      registerListeners();</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 实例化所有 non-lazy-init 的单例 bean</span></span><br><span class="line">      finishBeanFactoryInitialization(beanFactory);</span><br><span class="line"></span><br><span class="line">      <span class="comment">// Last step: publish corresponding event.</span></span><br><span class="line">      <span class="comment">// 初始化 LifecycleProcessor： 如果 beanFactory 里有 lifecycleProcessor 这个 bean 就用这个 bean，否则就用 DefaultLifecycleProcessor</span></span><br><span class="line">      <span class="comment">// 广播 ContextRefreshedEvent 事件</span></span><br><span class="line">      <span class="comment">// 注册 LiveBeansView 这个 MBean，用来查看所有 bean</span></span><br><span class="line">      finishRefresh();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">catch</span> (BeansException ex) &#123;</span><br><span class="line">      <span class="keyword">if</span> (logger.isWarnEnabled()) &#123;</span><br><span class="line">        logger.warn(<span class="string">"Exception encountered during context initialization - "</span> +</span><br><span class="line">          <span class="string">"cancelling refresh attempt: "</span> + ex);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// Destroy already created singletons to avoid dangling resources.</span></span><br><span class="line">      destroyBeans();</span><br><span class="line"></span><br><span class="line">      <span class="comment">// Reset 'active' flag.</span></span><br><span class="line">      cancelRefresh(ex);</span><br><span class="line"></span><br><span class="line">      <span class="comment">// Propagate exception to caller.</span></span><br><span class="line">      <span class="keyword">throw</span> ex;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">finally</span> &#123;</span><br><span class="line">      <span class="comment">// Reset common introspection caches in Spring's core, since we</span></span><br><span class="line">      <span class="comment">// might not ever need metadata for singleton beans anymore...</span></span><br><span class="line">      resetCommonCaches();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 refresh 的过程中， 有几个地方需要详细说明</p>
+<h3 id="obtainFreshBeanFactory"><a href="#obtainFreshBeanFactory" class="headerlink" title="obtainFreshBeanFactory"></a>obtainFreshBeanFactory</h3><p>在 obtainFreshBeanFactory 中会调用 refreshBeanFactory，而对于 AbstractRefreshableApplicationContext 子类，refreshBeanFactory 会调用子类的 loadBeanDefinitions 加载配置。例如 AbstractXmlApplicationContext 就是在这里加载 xml 并解析配置。</p>
+<h2 id="prepareBeanFactory"><a href="#prepareBeanFactory" class="headerlink" title="prepareBeanFactory"></a>prepareBeanFactory</h2><p>给 bean factory 设定默认的配置</p>
+<ul>
+<li>class loader</li>
+<li>BeanExpressionResolver：用来解析 spring 表达式</li>
+<li>PropertyEditorRegistrar: 属性相关</li>
+<li>添加 ApplicationContextAwareProcessor， 这个 BPP 在 bean 实例化后给 bean 注入各类 Aware 属性</li>
+<li>添加 ApplicationListenerDetector， 这个 BPP 找出 ApplicationListener 类型的 bean 并注册到 application context</li>
+<li>如果有 loadTimeWeaver 的话就添加 BPP LoadTimeWeaverAwareProcessor 和 ClassLoader ContextTypeMatchClassLoader</li>
+<li>注册默认的 bean，包括<ul>
+<li>environment： application context 对应的 environment</li>
+<li>systemProperties： 一个 Map</li>
+<li>systemEnvironment： 一个 Map</li>
+</ul>
+</li>
+</ul>
+<h3 id="invokeBeanFactoryPostProcessors"><a href="#invokeBeanFactoryPostProcessors" class="headerlink" title="invokeBeanFactoryPostProcessors"></a>invokeBeanFactoryPostProcessors</h3><p>实例化并调用 BeanFactoryPostProcessors (BFPP)</p>
+<p>这个时间点，bean 都还没有初始化（除了 BFPP 本身）， BFPP 可以操作 beanFacotry 达到修改 bean 的定义，添加 bean 定义（BeanDefinitionRegistryPostProcessor 就是专门做这个） 等效果</p>
+<p>BFPP 有两个来源，1 是 AbstractApplicationContext 的 beanFactoryPostProcessors 成员，可以通过编程的方式在 application context refresh 之前通过 addBeanFactoryPostProcessor 加入； 2 是 beanFactory 中注册的 BeanFactoryPostProcessor 类型的 bean。invokeBeanFactoryPostProcessors 的过程如下：</p>
+<ol>
+<li>将第 1 类的 BFPP 按是不是 BeanDefinitionRegistryPostProcessor 分成两类 registryProcessors 和 regularPostProcessors， registryProcessors 里的调用它们的 postProcessBeanDefinitionRegistry</li>
+<li>从 beanFactory 找出实现了 PriorityOrdered 接口的 BeanDefinitionRegistryPostProcessor，排序并调用它们的 postProcessBeanDefinitionRegistry 方法</li>
+<li>将第 2 步找到的 BeanDefinitionRegistryPostProcessor 全部加入到 registryProcessors</li>
+<li>从 beanFactory 找出实现了 Ordered 接口的 BeanDefinitionRegistryPostProcessor（排除第2步的），排序并调用它们的 postProcessBeanDefinitionRegistry 方法</li>
+<li>将第 4 步找到的 BeanDefinitionRegistryPostProcessor 全部加入到 registryProcessors</li>
+<li>从 beanFactory 找出 BeanDefinitionRegistryPostProcessor（排除第2，4步的），调用它们的 postProcessBeanDefinitionRegistry</li>
+<li>将第 6 步找到的 BeanDefinitionRegistryPostProcessor 全部加入到 registryProcessors</li>
+<li>调用 registryProcessors 里的 BFPP 的 postProcessBeanFactory</li>
+<li>调用 regularPostProcessors 里的 BFPP 的 postProcessBeanFactory</li>
+<li>从 beanFactory 找出 BFPP， 按 PriorityOrdered， Ordered 和 nonOrdered 分成 3 组，分别排序并调用 postProcessBeanFactory</li>
+<li>清理元数据缓存</li>
+</ol>
+<p>至此 invokeBeanFactoryPostProcessors 的过程结束</p>
+<h3 id="registerBeanPostProcessors"><a href="#registerBeanPostProcessors" class="headerlink" title="registerBeanPostProcessors"></a>registerBeanPostProcessors</h3><p>在 beanFactory 中找到所有 BPP， 按 PriorityOrdered、 Ordered 和 nonOrdered 分成 3 组，分别实例化并通过 beanFactory 的 addBeanPostProcessor 方法加入到 beanFactory</p>
+<h3 id="finishBeanFactoryInitialization"><a href="#finishBeanFactoryInitialization" class="headerlink" title="finishBeanFactoryInitialization"></a>finishBeanFactoryInitialization</h3><p>finishBeanFactoryInitialization 主要的作用是通过 beanFactory 的 preInstantiateSingletons 方法，实例化所有的非 non-lazy-init 的单例 bean。 preInstantiateSingletons 的过程如下</p>
+<ol>
+<li>找到所有 singleton，非 abstract，非 lazy-Init 的 bean 的 beanName</li>
+<li>对每个 beanName 调用 beanFactor （AbstractBeanFactory） 的 getBean ，如果 bean 还不存在，getBean 内部会调用 createBean 创建 bean</li>
+<li>获取 BeanDefinition， 解析出 bean 的类型</li>
+<li>如果 bean 是一个 InstantiationAwareBeanPostProcessor（BPP 的一个子类）， 尝试调用它的 postProcessBeforeInstantiation 获得一个实例（Instantiation 是实例化），如果成功，调用这个 BPP 的 postProcessAfterInitialization 并返回这个 bean 作为 createBean 的结果</li>
+<li>生成 bean 的实例对象，并用 BeanWrapper （方便使用）包装起来。 有多种方式生成 bean 实例对象，例如 Supplier，FactoryMethod，通过反射的方式调用 Constructor 等， 如果有 SmartInstantiationAwareBeanPostProcessor （InstantiationAwareBeanPostProcessorr 的子类）还可以通过它自动判断用哪个 Constructor</li>
+<li>对这个 BeanDefinition （不是 bean ）调用 MergedBeanDefinitionPostProcessor （BPP 的子类）的 postProcessMergedBeanDefinition 方法</li>
+<li>在 populateBean 里设置 bean 的属性<ul>
+<li>尝试调用 InstantiationAwareBeanPostProcessor （如有）的 postProcessAfterInstantiation 方法，如果 postProcessAfterInstantiation 返回 false， populateBean 就返回，不设置属性</li>
+<li>从 BeanDefinition 中获取 bean 的 PropertyValues</li>
+<li>尝试调用 InstantiationAwareBeanPostProcessor （如有）的 postProcessProperties 和 postProcessPropertyValues，这两个方法返回一个 PropertyValues 当作真正的 PropertyValues</li>
+<li>调用 applyPropertyValues 给 bean 设置属性</li>
+</ul>
+</li>
+<li>populateBean 后调用 initializeBean 对 bean 进行初始化<ul>
+<li>给 bean 应用 BeanNameAware 等 Aware 相关设定</li>
+<li>调用 BeanPostProcessor 的 postProcessBeforeInitialization 方法</li>
+<li>调用 afterPropertiesSet 和 init 方法</li>
+<li>调用 BeanPostProcessor 的 postProcessAfterInitialization 方法</li>
+</ul>
+</li>
+<li>设置 DisposableBean</li>
+</ol>
+<p>至此所有 non-lazy-init bean 初始化完成</p>
+<h3 id="FBPP-描述"><a href="#FBPP-描述" class="headerlink" title="FBPP 描述"></a>FBPP 描述</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 允许客户修改 application context 的 bean definition</span></span><br><span class="line"><span class="meta">@FunctionalInterface</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">BeanFactoryPostProcessor</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 修改 bean definition</span></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">postProcessBeanFactory</span><span class="params">(ConfigurableListableBeanFactory beanFactory)</span> <span class="keyword">throws</span> BeansException</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在一般的 BFPP 之前调用，用于 bean definition 注册</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">BeanDefinitionRegistryPostProcessor</span> <span class="keyword">extends</span> <span class="title">BeanFactoryPostProcessor</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">postProcessBeanDefinitionRegistry</span><span class="params">(BeanDefinitionRegistry registry)</span> <span class="keyword">throws</span> BeansException</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="BPP-描述"><a href="#BPP-描述" class="headerlink" title="BPP 描述"></a>BPP 描述</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 可以修改新生成 bean， 例如检查注解，接口，将 bean 修改为 proxies</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">BeanPostProcessor</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 在 bean 初始化（例如 afterPropertiesSet 或 init 方法）之前调用，这时 bean 的属性已经被注入</span></span><br><span class="line">  <span class="comment">// Initialization 是初始化</span></span><br><span class="line">  <span class="meta">@Nullable</span></span><br><span class="line">  <span class="function">Object <span class="title">postProcessBeforeInitialization</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 在 bean 初始化（例如 afterPropertiesSet 或 init 方法）之后调用</span></span><br><span class="line">  <span class="meta">@Nullable</span></span><br><span class="line">  <span class="function">Object <span class="title">postProcessAfterInitialization</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException</span>;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 给 bean 实例化前后增加 callback</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">InstantiationAwareBeanPostProcessor</span> <span class="keyword">extends</span> <span class="title">BeanPostProcessor</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// bean 实例化之前被调用</span></span><br><span class="line">  <span class="comment">// 如果返回值非 null，就用这个对象作为 bean</span></span><br><span class="line">  <span class="function">Object <span class="title">postProcessBeforeInstantiation</span><span class="params">(Class&lt;?&gt; beanClass, String beanName)</span> <span class="keyword">throws</span> BeansException</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// bean 实例化之后被调用</span></span><br><span class="line">  <span class="comment">// 如果返回 false， bean 就不会被注入属性</span></span><br><span class="line">  <span class="function"><span class="keyword">boolean</span> <span class="title">postProcessAfterInstantiation</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// bean 被注入属性前调用</span></span><br><span class="line">  <span class="comment">// 如果返回值非 null，就用返回值做注入</span></span><br><span class="line">  <span class="function">PropertyValues <span class="title">postProcessProperties</span><span class="params">(PropertyValues pvs, Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Deprecated</span></span><br><span class="line">  <span class="comment">// 作用同 postProcessProperties</span></span><br><span class="line">  <span class="function">PropertyValues <span class="title">postProcessPropertyValues</span><span class="params">(PropertyValues pvs, PropertyDescriptor[] pds, Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 可以修改 bean 的类型</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">SmartInstantiationAwareBeanPostProcessor</span> <span class="keyword">extends</span> <span class="title">InstantiationAwareBeanPostProcessor</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 返回 bean 的真正类型</span></span><br><span class="line">  Class&lt;?&gt; predictBeanType(Class&lt;?&gt; beanClass, String beanName) <span class="keyword">throws</span> BeansException;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 返回 bean 的构造器</span></span><br><span class="line">  Constructor&lt;?&gt;[] determineCandidateConstructors(Class&lt;?&gt; beanClass, String beanName) <span class="keyword">throws</span> BeansException;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 获取 EarlyBeanReference，用来解决循环引用</span></span><br><span class="line">  <span class="function">Object <span class="title">getEarlyBeanReference</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 可以合并 beanDefinition</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">MergedBeanDefinitionPostProcessor</span> <span class="keyword">extends</span> <span class="title">BeanPostProcessor</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 给特定的 bean 合并 beanDefinition</span></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">postProcessMergedBeanDefinition</span><span class="params">(RootBeanDefinition beanDefinition, Class&lt;?&gt; beanType, String beanName)</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 如果 beanDefinition 被重置，就被调用</span></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">resetBeanDefinition</span><span class="params">(String beanName)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        
+          
+        
+        <div class="post-tags">
+          
+            <a href="/tags/spring/" rel="tag"># spring</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/01/02/spring-env-and-property/" rel="next" title="【spring】 spring 环境与属性">
+                <i class="fa fa-chevron-left"></i> 【spring】 spring 环境与属性
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/01/12/spring-boot-startup-process/" rel="prev" title="【spring】 spring-boot 启动过程">
+                【spring】 spring-boot 启动过程 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Deer</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">51</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">20</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#类层次结构"><span class="nav-number">2.</span> <span class="nav-text">类层次结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#refresh-过程"><span class="nav-number">3.</span> <span class="nav-text">refresh 过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#obtainFreshBeanFactory"><span class="nav-number">3.1.</span> <span class="nav-text">obtainFreshBeanFactory</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#prepareBeanFactory"><span class="nav-number">4.</span> <span class="nav-text">prepareBeanFactory</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#invokeBeanFactoryPostProcessors"><span class="nav-number">4.1.</span> <span class="nav-text">invokeBeanFactoryPostProcessors</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#registerBeanPostProcessors"><span class="nav-number">4.2.</span> <span class="nav-text">registerBeanPostProcessors</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#finishBeanFactoryInitialization"><span class="nav-number">4.3.</span> <span class="nav-text">finishBeanFactoryInitialization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FBPP-描述"><span class="nav-number">4.4.</span> <span class="nav-text">FBPP 描述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BPP-描述"><span class="nav-number">4.5.</span> <span class="nav-text">BPP 描述</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Deer</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.1.2</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/utils.js?v=7.1.2"></script>
+
+  <script src="/js/motion.js?v=7.1.2"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/affix.js?v=7.1.2"></script>
+
+  <script src="/js/schemes/pisces.js?v=7.1.2"></script>
+
+
+
+
+  
+  <script src="/js/scrollspy.js?v=7.1.2"></script>
+<script src="/js/post-details.js?v=7.1.2"></script>
+
+
+
+  
+
+
+  <script src="/js/next-boot.js?v=7.1.2"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

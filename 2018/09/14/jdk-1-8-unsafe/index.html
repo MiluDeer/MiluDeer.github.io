@@ -126,18 +126,18 @@
 
 
 
-  <meta name="description" content="Unsafe 类在 sun.misc 包下，不属于Java标准。但是很多 Java 的基础类库，以及优秀的三方库都会用这个提升性能。 Unsafe 使用了单例模式，想使用 Unsafe 类就需要获取实例。由于安全限制，不能用一般的方法获取这个实例，通常都是使用反射获取 12345678910111213public class UnsafeDemo &amp;#123;  static sun.misc.">
+  <meta name="description" content="Unsafe 类在 sun.misc 包下，不属于Java标准。但是很多 Java 的基础类库，以及优秀的三方库都会用这个提升性能。">
 <meta name="keywords" content="jdk">
 <meta property="og:type" content="article">
 <meta property="og:title" content="【java】Java 1.8 Unsafe">
 <meta property="og:url" content="http://yoursite.com/2018/09/14/jdk-1-8-unsafe/index.html">
 <meta property="og:site_name" content="Deer&#39;s blog">
-<meta property="og:description" content="Unsafe 类在 sun.misc 包下，不属于Java标准。但是很多 Java 的基础类库，以及优秀的三方库都会用这个提升性能。 Unsafe 使用了单例模式，想使用 Unsafe 类就需要获取实例。由于安全限制，不能用一般的方法获取这个实例，通常都是使用反射获取 12345678910111213public class UnsafeDemo &amp;#123;  static sun.misc.">
+<meta property="og:description" content="Unsafe 类在 sun.misc 包下，不属于Java标准。但是很多 Java 的基础类库，以及优秀的三方库都会用这个提升性能。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-12-22T13:47:14.381Z">
+<meta property="og:updated_time" content="2020-02-09T06:22:15.985Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="【java】Java 1.8 Unsafe">
-<meta name="twitter:description" content="Unsafe 类在 sun.misc 包下，不属于Java标准。但是很多 Java 的基础类库，以及优秀的三方库都会用这个提升性能。 Unsafe 使用了单例模式，想使用 Unsafe 类就需要获取实例。由于安全限制，不能用一般的方法获取这个实例，通常都是使用反射获取 12345678910111213public class UnsafeDemo &amp;#123;  static sun.misc.">
+<meta name="twitter:description" content="Unsafe 类在 sun.misc 包下，不属于Java标准。但是很多 Java 的基础类库，以及优秀的三方库都会用这个提升性能。">
 
 
 
@@ -433,6 +433,7 @@
 
       
         <p>Unsafe 类在 sun.misc 包下，不属于Java标准。但是很多 Java 的基础类库，以及优秀的三方库都会用这个提升性能。</p>
+<a id="more"></a>
 <p>Unsafe 使用了单例模式，想使用 Unsafe 类就需要获取实例。由于安全限制，不能用一般的方法获取这个实例，通常都是使用反射获取</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UnsafeDemo</span> </span>&#123;</span><br><span class="line">  <span class="keyword">static</span> sun.misc.Unsafe U;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">static</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      Field f = Unsafe.class.getDeclaredField(<span class="string">"theUnsafe"</span>);</span><br><span class="line">      f.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">      U = (Unsafe) f.get(<span class="keyword">null</span>);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> Error(e);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>Unsafe 类几类功能：</p>
@@ -640,7 +641,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">42</span>
+                    <span class="site-state-item-count">51</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -695,7 +696,11 @@
                     
                       
                     
-                    <span class="site-state-item-count">18</span>
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">20</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>

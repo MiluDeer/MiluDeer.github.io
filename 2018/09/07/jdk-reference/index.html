@@ -126,18 +126,18 @@
 
 
 
-  <meta name="description" content="Java从1.2版本开始引入了4种引用，这4种引用的级别由高到低依次为： 　　强引用 &amp;gt; 软引用 &amp;gt; 弱引用 &amp;gt; 虚引用 强引用（StrongReference）　　强引用是使用最普遍的引用。类似 Object obj = new Object() 这类的引用。如果一个对象具有强引用，那垃圾回收器绝不会回收它。当内存空间不足，Java虚拟机宁愿抛出OutOfMemoryError">
+  <meta name="description" content="比较 java 里各种引用的区别">
 <meta name="keywords" content="jdk">
 <meta property="og:type" content="article">
 <meta property="og:title" content="【java】Java 引用">
 <meta property="og:url" content="http://yoursite.com/2018/09/07/jdk-reference/index.html">
 <meta property="og:site_name" content="Deer&#39;s blog">
-<meta property="og:description" content="Java从1.2版本开始引入了4种引用，这4种引用的级别由高到低依次为： 　　强引用 &amp;gt; 软引用 &amp;gt; 弱引用 &amp;gt; 虚引用 强引用（StrongReference）　　强引用是使用最普遍的引用。类似 Object obj = new Object() 这类的引用。如果一个对象具有强引用，那垃圾回收器绝不会回收它。当内存空间不足，Java虚拟机宁愿抛出OutOfMemoryError">
+<meta property="og:description" content="比较 java 里各种引用的区别">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-12-22T11:47:51.328Z">
+<meta property="og:updated_time" content="2020-02-09T06:23:11.843Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="【java】Java 引用">
-<meta name="twitter:description" content="Java从1.2版本开始引入了4种引用，这4种引用的级别由高到低依次为： 　　强引用 &amp;gt; 软引用 &amp;gt; 弱引用 &amp;gt; 虚引用 强引用（StrongReference）　　强引用是使用最普遍的引用。类似 Object obj = new Object() 这类的引用。如果一个对象具有强引用，那垃圾回收器绝不会回收它。当内存空间不足，Java虚拟机宁愿抛出OutOfMemoryError">
+<meta name="twitter:description" content="比较 java 里各种引用的区别">
 
 
 
@@ -432,7 +432,9 @@
       
 
       
-        <p>Java从1.2版本开始引入了4种引用，这4种引用的级别由高到低依次为：</p>
+        <p>比较 java 里各种引用的区别</p>
+<a id="more"></a>
+<p>Java从1.2版本开始引入了4种引用，这4种引用的级别由高到低依次为：</p>
 <p>　　强引用 &gt; 软引用 &gt; 弱引用 &gt; 虚引用</p>
 <h2 id="强引用（StrongReference）"><a href="#强引用（StrongReference）" class="headerlink" title="强引用（StrongReference）"></a>强引用（StrongReference）</h2><p>　　强引用是使用最普遍的引用。类似 Object obj = new Object() 这类的引用。如果一个对象具有强引用，那垃圾回收器绝不会回收它。当内存空间不足，Java虚拟机宁愿抛出OutOfMemoryError错误，使程序异常终止，也不会靠随意回收具有强引用的对象来解决内存不足的问题。</p>
 <h2 id="软引用（SoftReference）"><a href="#软引用（SoftReference）" class="headerlink" title="软引用（SoftReference）"></a>软引用（SoftReference）</h2><p>　　如果一个对象只具有软引用，则内存空间足够，垃圾回收器就不会回收它；<strong>如果内存空间不足了</strong>，就会回收这些对象的内存。只要垃圾回收器没有回收它，该对象就可以被程序使用。</p>
@@ -562,7 +564,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">42</span>
+                    <span class="site-state-item-count">51</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -617,7 +619,11 @@
                     
                       
                     
-                    <span class="site-state-item-count">18</span>
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">20</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
