@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next gemini" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=sans-serif:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext">
+  
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+<link rel="stylesheet" href="/css/main.css?v=7.1.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.1.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.1.2" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.1.2',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="说明如何用 spring 进行事务管理和 spring 如何实现事务">
+<meta name="keywords" content="spring">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【spring】 spring 事务的应用与实现">
+<meta property="og:url" content="http://yoursite.com/2020/02/09/spring-transaction/index.html">
+<meta property="og:site_name" content="Deer&#39;s blog">
+<meta property="og:description" content="说明如何用 spring 进行事务管理和 spring 如何实现事务">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2020-02-10T04:27:25.190Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【spring】 spring 事务的应用与实现">
+<meta name="twitter:description" content="说明如何用 spring 进行事务管理和 spring 如何实现事务">
+
+
+
+
+
+  
+  
+  <link rel="canonical" href="http://yoursite.com/2020/02/09/spring-transaction/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>【spring】 spring 事务的应用与实现 | Deer's blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Deer's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/09/spring-transaction/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Deer">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Deer's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">【spring】 spring 事务的应用与实现
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-02-09 19:44:54" itemprop="dateCreated datePublished" datetime="2020-02-09T19:44:54+08:00">2020-02-09</time>
+            
+
+            
+          </span>
+
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>说明如何用 spring 进行事务管理和 spring 如何实现事务</p>
+<a id="more"></a>
+<h2 id="spring-事务中的概念"><a href="#spring-事务中的概念" class="headerlink" title="spring 事务中的概念"></a>spring 事务中的概念</h2><ul>
+<li><p>事务定义 TransactionDefinition<br>定义 spring 事务的属性</p>
+<ul>
+<li>隔离等级（Isolation Level），控制本事务与其他事务的隔离级别<ul>
+<li>ISOLATION_DEFAULT</li>
+<li>ISOLATION_READ_UNCOMMITTED</li>
+<li>ISOLATION_READ_COMMITTED</li>
+<li>ISOLATION_REPEATABLE_READ</li>
+<li>ISOLATION_SERIALIZABLE</li>
+</ul>
+</li>
+<li>传播行为（Propagation Behavior），表示由一个事务控制的方法调用另一个事务控制的方法时的行为<ul>
+<li>PROPAGATION_REQUIRED，如果当前有事务，就加入当前事务；如果没有，则打开一个新事务</li>
+<li>PROPAGATION_SUPPORTS，如果当前有事务，就加入当前事务；如果没有，就以非事务方式执行</li>
+<li>PROPAGATION_MANDATORY，如果当前有事务，就加入当前事务；如果没有就抛出异常</li>
+<li>PROPAGATION_REQUIRES_NEW，如果当前有事务，就挂起当前事务，然后开启新事务</li>
+<li>PROPAGATION_NOT_SUPPORTED，总是以非事务方式执行，如果当前有事务，就挂起</li>
+<li>PROPAGATION_NEVER，总是以非事务方式执行，如果当前有事务，就抛出异常</li>
+<li>PROPAGATION_NESTED，如果当前有事务，就在嵌套事务内执行；如果没有就打开一个新事务</li>
+</ul>
+</li>
+<li>超时（Timeout），单位是秒</li>
+<li>是否只读（Read Only）</li>
+</ul>
+</li>
+<li><p>事务状态 TransactionStatus<br>表示一个事务的状态</p>
+</li>
+<li><p>事务管理器 PlatformTransactionManager<br>用来操作事务和管理事务，有以下操作</p>
+<ul>
+<li>TransactionStatus getTransaction(TransactionDefinition definition) 返回当前事务或开启新事务</li>
+<li>void commit(TransactionStatus status) 提交事务</li>
+<li>void rollback(TransactionStatus status) 回滚事务</li>
+</ul>
+</li>
+</ul>
+<h2 id="spring-事务的使用方式"><a href="#spring-事务的使用方式" class="headerlink" title="spring 事务的使用方式"></a>spring 事务的使用方式</h2><h3 id="编程式事务"><a href="#编程式事务" class="headerlink" title="编程式事务"></a>编程式事务</h3><p>使用 TransactionTemplate 或者直接使用底层的 PlatformTransactionManager （不推荐）， 这种方式比较少使用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">TransactionTemplate t = <span class="keyword">new</span> TransactionTemplate();</span><br><span class="line">t.setIsolationLevel(TransactionDefinition.ISOLATION_READ_COMMITTED); <span class="comment">// 设置事务属性</span></span><br><span class="line">t.execute(<span class="keyword">new</span> TransactionCallback&lt;Integer&gt;() &#123;</span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Integer <span class="title">doInTransaction</span><span class="params">(TransactionStatus status)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// do something</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h3 id="基于注解的声明式事务"><a href="#基于注解的声明式事务" class="headerlink" title="基于注解的声明式事务"></a>基于注解的声明式事务</h3><p>用 @Transactional 注解标记类或方法，然后 spring 会在事务中执行方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Transactional</span>(rollbackFor = Throwable.class)</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">foo</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="comment">// do something</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>@Transactional 有如下属性：</p>
+<ul>
+<li>value： transactionManager 的别名</li>
+<li>transactionManager： 指定的事务管理器</li>
+<li>propagation：事务传播行为</li>
+<li>isolation：事务隔离级别</li>
+<li>timeout：超时值</li>
+<li>readOnly：是否只读</li>
+<li>rollbackFor：表示哪些异常抛出时会回滚事务</li>
+<li>rollbackForClassName：同上</li>
+<li>noRollbackFor：表示哪些异常抛出时不会回滚事务</li>
+<li>noRollbackForClassName：同上</li>
+</ul>
+<h3 id="基于-XML-配置的声明式事务"><a href="#基于-XML-配置的声明式事务" class="headerlink" title="基于 XML 配置的声明式事务"></a>基于 XML 配置的声明式事务</h3><p>XML 方式是基于 tx 和 aop 名字空间的标签定义一个事务增强器</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">tx:advice</span> <span class="attr">id</span>=<span class="string">"advice"</span> <span class="attr">transaction-manager</span>=<span class="string">"transactionManager"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">tx:attributes</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">tx:method</span> <span class="attr">name</span>=<span class="string">"get*"</span> <span class="attr">propagation</span>=<span class="string">"REQUIRED"</span> <span class="attr">read-only</span>=<span class="string">"false"</span> <span class="attr">rollback-for</span>=<span class="string">"java.lang.Exception"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">tx:attributes</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">tx:advice</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">aop:config</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">aop:pointcut</span> <span class="attr">id</span>=<span class="string">"testService"</span> <span class="attr">expression</span>=<span class="string">"execution (* bar.foo.Service.*(..))"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">aop:advisor</span> <span class="attr">advice-ref</span>=<span class="string">"advice"</span> <span class="attr">pointcut-ref</span>=<span class="string">"testService"</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">aop:config</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="基于-TransactionProxyFactoryBean-的声明式事务"><a href="#基于-TransactionProxyFactoryBean-的声明式事务" class="headerlink" title="基于 TransactionProxyFactoryBean 的声明式事务"></a>基于 TransactionProxyFactoryBean 的声明式事务</h3><p>定义一个 TransactionProxyFactoryBean 单独为某些 bean 增加事务增强</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyBean</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> Integer <span class="title">getRecordWithTransaction</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Integer <span class="title">getRecordWithOutTransaction</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Bean</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> MyBean <span class="title">myBean</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> MyBean();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Bean</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> TransactionProxyFactoryBean <span class="title">proxyFactory</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Properties properties = <span class="keyword">new</span> Properties();</span><br><span class="line">    properties.put(<span class="string">"getRecordWithTransaction"</span>, <span class="string">"PROPAGATION_REQUIRED"</span>);</span><br><span class="line"></span><br><span class="line">    TransactionProxyFactoryBean f = <span class="keyword">new</span> TransactionProxyFactoryBean();</span><br><span class="line">    f.setTarget(myBean());</span><br><span class="line">    f.setTransactionManager(txManager());</span><br><span class="line">    f.setTransactionAttributes(properties);</span><br><span class="line">    <span class="keyword">return</span> f;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="spring-事务的实现"><a href="#spring-事务的实现" class="headerlink" title="spring 事务的实现"></a>spring 事务的实现</h2><h3 id="事务同步"><a href="#事务同步" class="headerlink" title="事务同步"></a>事务同步</h3><p>TransactionSynchronizationManager，实现事务的关键类，用于实现资源管理。资源管理，是对那些应该一个资源只在一个线程中使用的（如 JDBC Connections 和 Hibernate Sessions）资源进行管理。这类资源通常不会假设对线程进行绑定，所以进行事务管理时就需要这个操作。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 成员都是静态的，数据都是 ThreadLocal，所以用 abstract 修饰</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">TransactionSynchronizationManager</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// NamedThreadLocal 是 spring 对 ThreadLocal 的扩展，增加名字</span></span><br><span class="line">  <span class="comment">// resources 是事务的资源</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> ThreadLocal&lt;Map&lt;Object, Object&gt;&gt; resources =</span><br><span class="line">    <span class="keyword">new</span> NamedThreadLocal&lt;&gt;(<span class="string">"Transactional resources"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 可以通过 registerSynchronization 方法注册 TransactionSynchronization</span></span><br><span class="line">  <span class="comment">// 在事务执行的过程中，会调用所有 TransactionSynchronization 的相关方法</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> ThreadLocal&lt;Set&lt;TransactionSynchronization&gt;&gt; synchronizations =</span><br><span class="line">    <span class="keyword">new</span> NamedThreadLocal&lt;&gt;(<span class="string">"Transaction synchronizations"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> ThreadLocal&lt;String&gt; currentTransactionName =</span><br><span class="line">    <span class="keyword">new</span> NamedThreadLocal&lt;&gt;(<span class="string">"Current transaction name"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> ThreadLocal&lt;Boolean&gt; currentTransactionReadOnly =</span><br><span class="line">    <span class="keyword">new</span> NamedThreadLocal&lt;&gt;(<span class="string">"Current transaction read-only status"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> ThreadLocal&lt;Integer&gt; currentTransactionIsolationLevel =</span><br><span class="line">    <span class="keyword">new</span> NamedThreadLocal&lt;&gt;(<span class="string">"Current transaction isolation level"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> ThreadLocal&lt;Boolean&gt; actualTransactionActive =</span><br><span class="line">    <span class="keyword">new</span> NamedThreadLocal&lt;&gt;(<span class="string">"Actual transaction active"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 初始化事务同步，这是事务开始时要调用的方法</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">initSynchronization</span><span class="params">()</span> <span class="keyword">throws</span> IllegalStateException </span>&#123;</span><br><span class="line">    <span class="comment">// 检查 synchronizations 是否为空</span></span><br><span class="line">    <span class="keyword">if</span> (isSynchronizationActive()) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Cannot activate transaction synchronization - already active"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    logger.trace(<span class="string">"Initializing transaction synchronization"</span>);</span><br><span class="line">    synchronizations.set(<span class="keyword">new</span> LinkedHashSet&lt;&gt;());</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 清除同步，这是事务结束时要调用的方法</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">clearSynchronization</span><span class="params">()</span> <span class="keyword">throws</span> IllegalStateException </span>&#123;</span><br><span class="line">    <span class="comment">// 检查 synchronizations 是否为空</span></span><br><span class="line">    <span class="keyword">if</span> (!isSynchronizationActive()) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Cannot deactivate transaction synchronization - not active"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    logger.trace(<span class="string">"Clearing transaction synchronization"</span>);</span><br><span class="line">    synchronizations.remove();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">bindResource</span><span class="params">(Object key, Object value)</span> <span class="keyword">throws</span> IllegalStateException </span>&#123;</span><br><span class="line">    Object actualKey = TransactionSynchronizationUtils.unwrapResourceIfNecessary(key);</span><br><span class="line">    Assert.notNull(value, <span class="string">"Value must not be null"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取或创建 resources</span></span><br><span class="line">    Map&lt;Object, Object&gt; map = resources.get();</span><br><span class="line">    <span class="keyword">if</span> (map == <span class="keyword">null</span>) &#123;</span><br><span class="line">      map = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">      resources.set(map);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将 key, value 放到 resources</span></span><br><span class="line">    Object oldValue = map.put(actualKey, value);</span><br><span class="line">    <span class="keyword">if</span> (oldValue <span class="keyword">instanceof</span> ResourceHolder &amp;&amp; ((ResourceHolder) oldValue).isVoid()) &#123;</span><br><span class="line">      oldValue = <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (oldValue != <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Already value ["</span> + oldValue + <span class="string">"] for key ["</span> +</span><br><span class="line">        actualKey + <span class="string">"] bound to thread ["</span> + Thread.currentThread().getName() + <span class="string">"]"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Object <span class="title">getResource</span><span class="params">(Object key)</span> </span>&#123;</span><br><span class="line">    Object actualKey = TransactionSynchronizationUtils.unwrapResourceIfNecessary(key);</span><br><span class="line">    <span class="comment">// doGetResource 会从 resources 获得数据</span></span><br><span class="line">    Object value = doGetResource(actualKey);</span><br><span class="line">    <span class="keyword">return</span> value;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Object <span class="title">unbindResource</span><span class="params">(Object key)</span> <span class="keyword">throws</span> IllegalStateException </span>&#123;</span><br><span class="line">    Object actualKey = TransactionSynchronizationUtils.unwrapResourceIfNecessary(key);</span><br><span class="line">    <span class="comment">// doUnbindResource 从 resources 删除 key, value</span></span><br><span class="line">    Object value = doUnbindResource(actualKey);</span><br><span class="line">    <span class="keyword">if</span> (value == <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(</span><br><span class="line">        <span class="string">"No value for key ["</span> + actualKey + <span class="string">"] bound to thread ["</span> + Thread.currentThread().getName() + <span class="string">"]"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> value;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="事务的实现"><a href="#事务的实现" class="headerlink" title="事务的实现"></a>事务的实现</h3><p>spring 事务支持对不同的资源进行管理，它由 AbstractPlatformTransactionManager 实现，不同的资源需要继承 AbstractPlatformTransactionManager 然后覆写一些关键方法，从而实现对不同资源的事务管理。例如 jdbc 事务的实现是 DataSourceTransactionManager。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">AbstractPlatformTransactionManager</span> <span class="keyword">implements</span> <span class="title">PlatformTransactionManager</span>, <span class="title">Serializable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 开启或加入一个事务</span></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> TransactionStatus <span class="title">getTransaction</span><span class="params">(@Nullable TransactionDefinition definition)</span> <span class="keyword">throws</span> TransactionException </span>&#123;</span><br><span class="line">    <span class="comment">// 创建事务对象，由具体的事务管理器实现</span></span><br><span class="line">    Object transaction = doGetTransaction();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果未传入 definition 就使用默认配置</span></span><br><span class="line">    <span class="keyword">if</span> (definition == <span class="keyword">null</span>) &#123;</span><br><span class="line">      definition = <span class="keyword">new</span> DefaultTransactionDefinition();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果当前有事务，就调用 handleExistingTransaction， 根据传播行为的配置执行事务</span></span><br><span class="line">    <span class="keyword">if</span> (isExistingTransaction(transaction)) &#123;</span><br><span class="line">      <span class="keyword">return</span> handleExistingTransaction(definition, transaction, debugEnabled);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="comment">// No existing transaction found -&gt; check propagation behavior to find out how to proceed.</span></span><br><span class="line">    <span class="keyword">if</span> (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_MANDATORY) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IllegalTransactionStateException(<span class="string">"No existing transaction found for transaction marked with propagation 'mandatory'"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_REQUIRED ||</span><br><span class="line">      definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_REQUIRES_NEW ||</span><br><span class="line">      definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_NESTED) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 暂停当前事务，SuspendedResourcesHolder 用于保存 TransactionSynchronizationManager 当前的成员值</span></span><br><span class="line">        SuspendedResourcesHolder suspendedResources = suspend(<span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">          <span class="keyword">boolean</span> newSynchronization = (getTransactionSynchronization() != SYNCHRONIZATION_NEVER);</span><br><span class="line">          DefaultTransactionStatus status = newTransactionStatus(</span><br><span class="line">            definition, transaction, <span class="keyword">true</span>, newSynchronization, debugEnabled, suspendedResources);</span><br><span class="line"></span><br><span class="line">          <span class="comment">// 开始事务，doBegin 由子类实现，按照具体资源的语义开启事务</span></span><br><span class="line">          doBegin(transaction, definition);</span><br><span class="line"></span><br><span class="line">          <span class="comment">/* 设置事务同步状态</span></span><br><span class="line"><span class="comment">            TransactionSynchronizationManager.setActualTransactionActive(status.hasTransaction());</span></span><br><span class="line"><span class="comment">            TransactionSynchronizationManager.setCurrentTransactionIsolationLevel(</span></span><br><span class="line"><span class="comment">              definition.getIsolationLevel() != TransactionDefinition.ISOLATION_DEFAULT ?</span></span><br><span class="line"><span class="comment">                definition.getIsolationLevel() : null);</span></span><br><span class="line"><span class="comment">            TransactionSynchronizationManager.setCurrentTransactionReadOnly(definition.isReadOnly());</span></span><br><span class="line"><span class="comment">            TransactionSynchronizationManager.setCurrentTransactionName(definition.getName());</span></span><br><span class="line"><span class="comment">            TransactionSynchronizationManager.initSynchronization();</span></span><br><span class="line"><span class="comment">           */</span></span><br><span class="line">          prepareSynchronization(status, definition);</span><br><span class="line">          <span class="keyword">return</span> status;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (RuntimeException | Error ex) &#123;</span><br><span class="line">          <span class="comment">// 从 suspendedResources 恢复成员的值到 TransactionSynchronizationManager</span></span><br><span class="line">          resume(<span class="keyword">null</span>, suspendedResources);</span><br><span class="line">          <span class="keyword">throw</span> ex;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">boolean</span> newSynchronization = (getTransactionSynchronization() == SYNCHRONIZATION_ALWAYS);</span><br><span class="line">      <span class="keyword">return</span> prepareTransactionStatus(definition, <span class="keyword">null</span>, <span class="keyword">true</span>, newSynchronization, debugEnabled, <span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 提交事务</span></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">commit</span><span class="params">(TransactionStatus status)</span> <span class="keyword">throws</span> TransactionException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (status.isCompleted()) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IllegalTransactionStateException(</span><br><span class="line">        <span class="string">"Transaction is already completed - do not call commit or rollback more than once per transaction"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    DefaultTransactionStatus defStatus = (DefaultTransactionStatus) status;</span><br><span class="line">    <span class="keyword">if</span> (defStatus.isLocalRollbackOnly()) &#123;</span><br><span class="line">      processRollback(defStatus, <span class="keyword">false</span>);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!shouldCommitOnGlobalRollbackOnly() &amp;&amp; defStatus.isGlobalRollbackOnly()) &#123;</span><br><span class="line">      processRollback(defStatus, <span class="keyword">true</span>);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    processCommit(defStatus);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 回滚事务</span></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">rollback</span><span class="params">(TransactionStatus status)</span> <span class="keyword">throws</span> TransactionException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (status.isCompleted()) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IllegalTransactionStateException(</span><br><span class="line">        <span class="string">"Transaction is already completed - do not call commit or rollback more than once per transaction"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    DefaultTransactionStatus defStatus = (DefaultTransactionStatus) status;</span><br><span class="line">    processRollback(defStatus, <span class="keyword">false</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 处理事务提交</span></span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">processCommit</span><span class="params">(DefaultTransactionStatus status)</span> <span class="keyword">throws</span> TransactionException </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">boolean</span> beforeCompletionInvoked = <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">boolean</span> unexpectedRollback = <span class="keyword">false</span>;</span><br><span class="line">        <span class="comment">// 由子类实现</span></span><br><span class="line">        prepareForCommit(status);</span><br><span class="line">        <span class="comment">// 调用 TransactionSynchronization 的 beforeCommit 方法</span></span><br><span class="line">        triggerBeforeCommit(status);</span><br><span class="line">        <span class="comment">// 调用 TransactionSynchronization 的 beforeCompletion 方法</span></span><br><span class="line">        triggerBeforeCompletion(status);</span><br><span class="line">        beforeCompletionInvoked = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (status.hasSavepoint()) &#123;</span><br><span class="line">          <span class="comment">// save point 不展开分析</span></span><br><span class="line">          unexpectedRollback = status.isGlobalRollbackOnly();</span><br><span class="line">          status.releaseHeldSavepoint();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (status.isNewTransaction()) &#123;</span><br><span class="line">          unexpectedRollback = status.isGlobalRollbackOnly();</span><br><span class="line">          <span class="comment">// 提交事务，由子类实现</span></span><br><span class="line">          doCommit(status);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (isFailEarlyOnGlobalRollbackOnly()) &#123;</span><br><span class="line">          unexpectedRollback = status.isGlobalRollbackOnly();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (unexpectedRollback) &#123;</span><br><span class="line">          <span class="keyword">throw</span> <span class="keyword">new</span> UnexpectedRollbackException(<span class="string">"Transaction silently rolled back because it has been marked as rollback-only"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">catch</span> (UnexpectedRollbackException ex) &#123;</span><br><span class="line">        <span class="comment">// 调用 TransactionSynchronizationManager.clearSynchronization() 以及 TransactionSynchronization 的 afterCompletion</span></span><br><span class="line">        triggerAfterCompletion(status, TransactionSynchronization.STATUS_ROLLED_BACK);</span><br><span class="line">        <span class="keyword">throw</span> ex;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">catch</span> (TransactionException ex) &#123;</span><br><span class="line">        <span class="comment">// doCommit 会抛出这个异常，检查是否在提交异常时进行回滚</span></span><br><span class="line">        <span class="keyword">if</span> (isRollbackOnCommitFailure()) &#123;</span><br><span class="line">          doRollbackOnCommitException(status, ex);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">          triggerAfterCompletion(status, TransactionSynchronization.STATUS_UNKNOWN);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">throw</span> ex;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">catch</span> (RuntimeException | Error ex) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!beforeCompletionInvoked) &#123;</span><br><span class="line">          <span class="comment">// 调用 TransactionSynchronization 的 beforeCompletion</span></span><br><span class="line">          triggerBeforeCompletion(status);</span><br><span class="line">        &#125;</span><br><span class="line">        doRollbackOnCommitException(status, ex);</span><br><span class="line">        <span class="keyword">throw</span> ex;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 调用 TransactionSynchronization 的 afterCommit</span></span><br><span class="line">        triggerAfterCommit(status);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">finally</span> &#123;</span><br><span class="line">        triggerAfterCompletion(status, TransactionSynchronization.STATUS_COMMITTED);</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">finally</span> &#123;</span><br><span class="line">     cleanupAfterCompletion(status);</span><br><span class="line">   &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 处理事务回滚</span></span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">processRollback</span><span class="params">(DefaultTransactionStatus status, <span class="keyword">boolean</span> unexpected)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">boolean</span> unexpectedRollback = unexpected;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        triggerBeforeCompletion(status);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (status.hasSavepoint()) &#123;</span><br><span class="line">          <span class="comment">// save point 不展开分析</span></span><br><span class="line">          status.rollbackToHeldSavepoint();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (status.isNewTransaction()) &#123;</span><br><span class="line">          <span class="comment">// 执行回滚，由子类实现</span></span><br><span class="line">          doRollback(status);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="comment">// 说明在一个大的事务内</span></span><br><span class="line">          <span class="keyword">if</span> (status.hasTransaction()) &#123;</span><br><span class="line">            <span class="keyword">if</span> (status.isLocalRollbackOnly() || isGlobalRollbackOnParticipationFailure()) &#123;</span><br><span class="line">              doSetRollbackOnly(status);</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">          <span class="keyword">if</span> (!isFailEarlyOnGlobalRollbackOnly()) &#123;</span><br><span class="line">            unexpectedRollback = <span class="keyword">false</span>;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">catch</span> (RuntimeException | Error ex) &#123;</span><br><span class="line">        triggerAfterCompletion(status, TransactionSynchronization.STATUS_UNKNOWN);</span><br><span class="line">        <span class="keyword">throw</span> ex;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      triggerAfterCompletion(status, TransactionSynchronization.STATUS_ROLLED_BACK);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (unexpectedRollback) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> UnexpectedRollbackException(<span class="string">"Transaction rolled back because it has been marked as rollback-only"</span>);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">finally</span> &#123;</span><br><span class="line">      cleanupAfterCompletion(status);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 结束事务，调用相关的清除方法</span></span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">cleanupAfterCompletion</span><span class="params">(DefaultTransactionStatus status)</span> </span>&#123;</span><br><span class="line">    status.setCompleted();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 清除 TransactionSynchronizationManager</span></span><br><span class="line">    <span class="keyword">if</span> (status.isNewSynchronization()) &#123;</span><br><span class="line">      TransactionSynchronizationManager.clear();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 调用 doCleanupAfterCompletion， doCleanupAfterCompletion 由子类实现</span></span><br><span class="line">    <span class="keyword">if</span> (status.isNewTransaction()) &#123;</span><br><span class="line">      doCleanupAfterCompletion(status.getTransaction());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (status.getSuspendedResources() != <span class="keyword">null</span>) &#123;</span><br><span class="line">      Object transaction = (status.hasTransaction() ? status.getTransaction() : <span class="keyword">null</span>);</span><br><span class="line">      resume(transaction, (SuspendedResourcesHolder) status.getSuspendedResources());</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="jdbc-事务"><a href="#jdbc-事务" class="headerlink" title="jdbc 事务"></a>jdbc 事务</h3><p>要实现 jdbc 事务，需要保证在同一个线程中获取的都是同一个 Connection。 使用 DataSourceUtils.getConnection 方法可以获取 Connection。 DataSourceUtils.getConnection 会尝试用 TransactionSynchronizationManager.getResource 来事务里的 Connection。如果在一个事务里，TransactionSynchronizationManager.getResource 将返回之前的 ConnectionHolder，可以从中获取 Connection；如果不在一个事务里，TransactionSynchronizationManager.getResource 返回 null，这时 DataSourceUtils.getConnection 就从 DataSource 获取 Connection。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">DataSourceUtils</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Connection <span class="title">getConnection</span><span class="params">(DataSource dataSource)</span> <span class="keyword">throws</span> CannotGetJdbcConnectionException </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> doGetConnection(dataSource);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">catch</span> (SQLException ex) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> CannotGetJdbcConnectionException(<span class="string">"Failed to obtain JDBC Connection"</span>, ex);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">catch</span> (IllegalStateException ex) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> CannotGetJdbcConnectionException(<span class="string">"Failed to obtain JDBC Connection: "</span> + ex.getMessage());</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Connection <span class="title">doGetConnection</span><span class="params">(DataSource dataSource)</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 尝试从 TransactionSynchronizationManager 获取 Connection</span></span><br><span class="line">    ConnectionHolder conHolder = (ConnectionHolder) TransactionSynchronizationManager.getResource(dataSource);</span><br><span class="line">    <span class="keyword">if</span> (conHolder != <span class="keyword">null</span> &amp;&amp; (conHolder.hasConnection() || conHolder.isSynchronizedWithTransaction())) &#123;</span><br><span class="line">      conHolder.requested();</span><br><span class="line">      <span class="keyword">if</span> (!conHolder.hasConnection()) &#123;</span><br><span class="line">        conHolder.setConnection(fetchConnection(dataSource));</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> conHolder.getConnection();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 从 DataSource 获取 Connection</span></span><br><span class="line">    Connection con = fetchConnection(dataSource);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果 TransactionSynchronizationManager 是激活状态，就将 Connection 注册到 TransactionSynchronizationManager 以便下次使用</span></span><br><span class="line">    <span class="keyword">if</span> (TransactionSynchronizationManager.isSynchronizationActive()) &#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 构造 ConnectionHolder</span></span><br><span class="line">        ConnectionHolder holderToUse = conHolder;</span><br><span class="line">        <span class="keyword">if</span> (holderToUse == <span class="keyword">null</span>) &#123;</span><br><span class="line">          holderToUse = <span class="keyword">new</span> ConnectionHolder(con);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">          holderToUse.setConnection(con);</span><br><span class="line">        &#125;</span><br><span class="line">        holderToUse.requested();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 注册到 TransactionSynchronizationManager 并绑定 DataSource 和 ConnectionHolder</span></span><br><span class="line">        TransactionSynchronizationManager.registerSynchronization(<span class="keyword">new</span> ConnectionSynchronization(holderToUse, dataSource));</span><br><span class="line">        holderToUse.setSynchronizedWithTransaction(<span class="keyword">true</span>);</span><br><span class="line">        <span class="keyword">if</span> (holderToUse != conHolder) &#123;</span><br><span class="line">          TransactionSynchronizationManager.bindResource(dataSource, holderToUse);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">catch</span> (RuntimeException ex) &#123;</span><br><span class="line">        releaseConnection(con, dataSource);</span><br><span class="line">        <span class="keyword">throw</span> ex;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> con;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>事务需要事务管理器来管理，JDBC 事务由 DataSourceTransactionManager 类实现，它是 AbstractPlatformTransactionManager 的子类，主要是实现 AbstractPlatformTransactionManager 里定义的抽象方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DataSourceTransactionManager</span> <span class="keyword">extends</span> <span class="title">AbstractPlatformTransactionManager</span></span></span><br><span class="line"><span class="class">  <span class="keyword">implements</span> <span class="title">ResourceTransactionManager</span>, <span class="title">InitializingBean</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 获取事务对象</span></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">protected</span> Object <span class="title">doGetTransaction</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 以 DataSourceTransactionObject 作为事务对象</span></span><br><span class="line">    DataSourceTransactionObject txObject = <span class="keyword">new</span> DataSourceTransactionObject();</span><br><span class="line">    txObject.setSavepointAllowed(isNestedTransactionAllowed());</span><br><span class="line">    <span class="comment">// obtainDataSource 方法获取一个 JDBC 的 DataSource 对象</span></span><br><span class="line">    ConnectionHolder conHolder = (ConnectionHolder) TransactionSynchronizationManager.getResource(obtainDataSource());</span><br><span class="line">    txObject.setConnectionHolder(conHolder, <span class="keyword">false</span>);</span><br><span class="line">    <span class="keyword">return</span> txObject;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 开始事务</span></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doBegin</span><span class="params">(Object transaction, TransactionDefinition definition)</span> </span>&#123;</span><br><span class="line">    DataSourceTransactionObject txObject = (DataSourceTransactionObject) transaction;</span><br><span class="line">    Connection con = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 从 DataSource 获取新的 Connection 并设置到事务对象</span></span><br><span class="line">      <span class="keyword">if</span> (!txObject.hasConnectionHolder() || txObject.getConnectionHolder().isSynchronizedWithTransaction()) &#123;</span><br><span class="line">        Connection newCon = obtainDataSource().getConnection();</span><br><span class="line">        txObject.setConnectionHolder(<span class="keyword">new</span> ConnectionHolder(newCon), <span class="keyword">true</span>);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      txObject.getConnectionHolder().setSynchronizedWithTransaction(<span class="keyword">true</span>);</span><br><span class="line">      <span class="comment">// 得到 Connection 对象</span></span><br><span class="line">      con = txObject.getConnectionHolder().getConnection();</span><br><span class="line"></span><br><span class="line">      <span class="comment">// prepareConnectionForTransaction 会设置是否只读和事务隔离级别</span></span><br><span class="line">      Integer previousIsolationLevel = DataSourceUtils.prepareConnectionForTransaction(con, definition);</span><br><span class="line">      txObject.setPreviousIsolationLevel(previousIsolationLevel);</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 设置为手动提交</span></span><br><span class="line">      <span class="keyword">if</span> (con.getAutoCommit()) &#123;</span><br><span class="line">        txObject.setMustRestoreAutoCommit(<span class="keyword">true</span>);</span><br><span class="line">        con.setAutoCommit(<span class="keyword">false</span>);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 根据 definition 决定是否执行 SET TRANSACTION READ ONLY</span></span><br><span class="line">      prepareTransactionalConnection(con, definition);</span><br><span class="line">      txObject.getConnectionHolder().setTransactionActive(<span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 设置事务超时时间</span></span><br><span class="line">      <span class="keyword">int</span> timeout = determineTimeout(definition);</span><br><span class="line">      <span class="keyword">if</span> (timeout != TransactionDefinition.TIMEOUT_DEFAULT) &#123;</span><br><span class="line">        txObject.getConnectionHolder().setTimeoutInSeconds(timeout);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 绑定 DataSource 和 ConnectionHolder 到 TransactionSynchronizationManager</span></span><br><span class="line">      <span class="keyword">if</span> (txObject.isNewConnectionHolder()) &#123;</span><br><span class="line">        TransactionSynchronizationManager.bindResource(obtainDataSource(), txObject.getConnectionHolder());</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">catch</span> (Throwable ex) &#123;</span><br><span class="line">      <span class="keyword">if</span> (txObject.isNewConnectionHolder()) &#123;</span><br><span class="line">        DataSourceUtils.releaseConnection(con, obtainDataSource());</span><br><span class="line">        txObject.setConnectionHolder(<span class="keyword">null</span>, <span class="keyword">false</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> CannotCreateTransactionException(<span class="string">"Could not open JDBC Connection for transaction"</span>, ex);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 获取 Connection 然后提交</span></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doCommit</span><span class="params">(DefaultTransactionStatus status)</span> </span>&#123;</span><br><span class="line">    DataSourceTransactionObject txObject = (DataSourceTransactionObject) status.getTransaction();</span><br><span class="line">    Connection con = txObject.getConnectionHolder().getConnection();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      con.commit();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">catch</span> (SQLException ex) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> TransactionSystemException(<span class="string">"Could not commit JDBC transaction"</span>, ex);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 获取 Connection 然后回滚</span></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doRollback</span><span class="params">(DefaultTransactionStatus status)</span> </span>&#123;</span><br><span class="line">    DataSourceTransactionObject txObject = (DataSourceTransactionObject) status.getTransaction();</span><br><span class="line">    Connection con = txObject.getConnectionHolder().getConnection();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      con.rollback();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">catch</span> (SQLException ex) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> TransactionSystemException(<span class="string">"Could not roll back JDBC transaction"</span>, ex);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 清理资源</span></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doCleanupAfterCompletion</span><span class="params">(Object transaction)</span> </span>&#123;</span><br><span class="line">    DataSourceTransactionObject txObject = (DataSourceTransactionObject) transaction;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 资源解除绑定</span></span><br><span class="line">    <span class="keyword">if</span> (txObject.isNewConnectionHolder()) &#123;</span><br><span class="line">      TransactionSynchronizationManager.unbindResource(obtainDataSource());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 重置 Connection， 因为 Connection 可能来自连接池</span></span><br><span class="line">    Connection con = txObject.getConnectionHolder().getConnection();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 重置自动提交</span></span><br><span class="line">      <span class="keyword">if</span> (txObject.isMustRestoreAutoCommit()) &#123;</span><br><span class="line">        con.setAutoCommit(<span class="keyword">true</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">// 重置事务隔离级别</span></span><br><span class="line">      DataSourceUtils.resetConnectionAfterTransaction(con, txObject.getPreviousIsolationLevel());</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">catch</span> (Throwable ex) &#123;</span><br><span class="line">      logger.debug(<span class="string">"Could not reset JDBC Connection after transaction"</span>, ex);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 释放、关闭 Connection</span></span><br><span class="line">    <span class="keyword">if</span> (txObject.isNewConnectionHolder()) &#123;</span><br><span class="line">      DataSourceUtils.releaseConnection(con, <span class="keyword">this</span>.dataSource);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    txObject.getConnectionHolder().clear();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="声明式事务的实现"><a href="#声明式事务的实现" class="headerlink" title="声明式事务的实现"></a>声明式事务的实现</h3><p>不论是用注解还是用 XML 方式，都是使用 AOP 实现事务，通过 TransactionInterceptor 来进行事务功能的增强</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TransactionInterceptor</span> <span class="keyword">extends</span> <span class="title">TransactionAspectSupport</span> <span class="keyword">implements</span> <span class="title">MethodInterceptor</span>, <span class="title">Serializable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="meta">@Nullable</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(MethodInvocation invocation)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">    Class&lt;?&gt; targetClass = (invocation.getThis() != <span class="keyword">null</span> ? AopUtils.getTargetClass(invocation.getThis()) : <span class="keyword">null</span>);</span><br><span class="line">    <span class="comment">// invokeWithinTransaction 是父类 TransactionAspectSupport 的方法</span></span><br><span class="line">    <span class="keyword">return</span> invokeWithinTransaction(invocation.getMethod(), targetClass, invocation::proceed);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">protected</span> Object <span class="title">invokeWithinTransaction</span><span class="params">(Method method, @Nullable Class&lt;?&gt; targetClass,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">final</span> InvocationCallback invocation)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果 tas 是 null， 说明方法需要用非事务的方式执行</span></span><br><span class="line">    TransactionAttributeSource tas = getTransactionAttributeSource();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 事务的属性</span></span><br><span class="line">    <span class="keyword">final</span> TransactionAttribute txAttr = (tas != <span class="keyword">null</span> ? tas.getTransactionAttribute(method, targetClass) : <span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取 transaction manager</span></span><br><span class="line">    <span class="keyword">final</span> PlatformTransactionManager tm = determineTransactionManager(txAttr);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 得到 join point</span></span><br><span class="line">    <span class="keyword">final</span> String joinpointIdentification = methodIdentification(method, targetClass, txAttr);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 这是一般情况</span></span><br><span class="line">    <span class="keyword">if</span> (txAttr == <span class="keyword">null</span> || !(tm <span class="keyword">instanceof</span> CallbackPreferringPlatformTransactionManager)) &#123;</span><br><span class="line">      <span class="comment">// 创建事务，调用 transaction manager 的 getTransaction</span></span><br><span class="line">      <span class="comment">// TransactionInfo 包含一个 TransactionStatus 成员</span></span><br><span class="line">      TransactionInfo txInfo = createTransactionIfNecessary(tm, txAttr, joinpointIdentification);</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 调用原方法</span></span><br><span class="line">      Object retVal;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        retVal = invocation.proceedWithInvocation();</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">catch</span> (Throwable ex) &#123;</span><br><span class="line">        <span class="comment">// target invocation exception</span></span><br><span class="line">        <span class="comment">// 回滚，调用 transaction manager 的 rollback</span></span><br><span class="line">        completeTransactionAfterThrowing(txInfo, ex);</span><br><span class="line">        <span class="keyword">throw</span> ex;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="comment">// 恢复线程事务状态</span></span><br><span class="line">        cleanupTransactionInfo(txInfo);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 提交，调用 transaction manager 的 commit</span></span><br><span class="line">      commitTransactionAfterReturning(txInfo);</span><br><span class="line">      <span class="keyword">return</span> retVal;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// transaction manager 是 CallbackPreferringPlatformTransactionManager 类型的情况</span></span><br><span class="line">      <span class="keyword">final</span> ThrowableHolder throwableHolder = <span class="keyword">new</span> ThrowableHolder();</span><br><span class="line"></span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        Object result = ((CallbackPreferringPlatformTransactionManager) tm).execute(txAttr, status -&gt; &#123;</span><br><span class="line">          TransactionInfo txInfo = prepareTransactionInfo(tm, txAttr, joinpointIdentification, status);</span><br><span class="line">          <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> invocation.proceedWithInvocation();</span><br><span class="line">          &#125;</span><br><span class="line">          <span class="keyword">catch</span> (Throwable ex) &#123;</span><br><span class="line">            <span class="keyword">if</span> (txAttr.rollbackOn(ex)) &#123;</span><br><span class="line">              <span class="keyword">if</span> (ex <span class="keyword">instanceof</span> RuntimeException) &#123;</span><br><span class="line">                <span class="keyword">throw</span> (RuntimeException) ex;</span><br><span class="line">              &#125;</span><br><span class="line">              <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> ThrowableHolderException(ex);</span><br><span class="line">              &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> &#123;</span><br><span class="line">              throwableHolder.throwable = ex;</span><br><span class="line">              <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">          <span class="keyword">finally</span> &#123;</span><br><span class="line">            cleanupTransactionInfo(txInfo);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (throwableHolder.throwable != <span class="keyword">null</span>) &#123;</span><br><span class="line">          <span class="keyword">throw</span> throwableHolder.throwable;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">catch</span> (ThrowableHolderException ex) &#123;</span><br><span class="line">        <span class="keyword">throw</span> ex.getCause();</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">catch</span> (TransactionSystemException ex2) &#123;</span><br><span class="line">        <span class="keyword">if</span> (throwableHolder.throwable != <span class="keyword">null</span>) &#123;</span><br><span class="line">          ex2.initApplicationException(throwableHolder.throwable);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">throw</span> ex2;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">catch</span> (Throwable ex2) &#123;</span><br><span class="line">        <span class="keyword">throw</span> ex2;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        
+          
+        
+        <div class="post-tags">
+          
+            <a href="/tags/spring/" rel="tag"># spring</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/02/09/spring-extend-note/" rel="next" title="【spring】 spring 常用扩展">
+                <i class="fa fa-chevron-left"></i> 【spring】 spring 常用扩展
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/02/10/spring-boot-log/" rel="prev" title="【spring】 spring boot 日志配置以及原理">
+                【spring】 spring boot 日志配置以及原理 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Deer</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">63</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">23</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#spring-事务中的概念"><span class="nav-number">1.</span> <span class="nav-text">spring 事务中的概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#spring-事务的使用方式"><span class="nav-number">2.</span> <span class="nav-text">spring 事务的使用方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#编程式事务"><span class="nav-number">2.1.</span> <span class="nav-text">编程式事务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于注解的声明式事务"><span class="nav-number">2.2.</span> <span class="nav-text">基于注解的声明式事务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于-XML-配置的声明式事务"><span class="nav-number">2.3.</span> <span class="nav-text">基于 XML 配置的声明式事务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于-TransactionProxyFactoryBean-的声明式事务"><span class="nav-number">2.4.</span> <span class="nav-text">基于 TransactionProxyFactoryBean 的声明式事务</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#spring-事务的实现"><span class="nav-number">3.</span> <span class="nav-text">spring 事务的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#事务同步"><span class="nav-number">3.1.</span> <span class="nav-text">事务同步</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#事务的实现"><span class="nav-number">3.2.</span> <span class="nav-text">事务的实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#jdbc-事务"><span class="nav-number">3.3.</span> <span class="nav-text">jdbc 事务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#声明式事务的实现"><span class="nav-number">3.4.</span> <span class="nav-text">声明式事务的实现</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Deer</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.1.2</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/utils.js?v=7.1.2"></script>
+
+  <script src="/js/motion.js?v=7.1.2"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/affix.js?v=7.1.2"></script>
+
+  <script src="/js/schemes/pisces.js?v=7.1.2"></script>
+
+
+
+
+  
+  <script src="/js/scrollspy.js?v=7.1.2"></script>
+<script src="/js/post-details.js?v=7.1.2"></script>
+
+
+
+  
+
+
+  <script src="/js/next-boot.js?v=7.1.2"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

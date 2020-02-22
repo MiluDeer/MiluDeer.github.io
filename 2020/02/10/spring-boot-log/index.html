@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next gemini" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=sans-serif:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext">
+  
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+<link rel="stylesheet" href="/css/main.css?v=7.1.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.1.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.1.2" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.1.2',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="描述 spring boot 日志配置的使用及其实现">
+<meta name="keywords" content="spring">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【spring】 spring boot 日志配置以及原理">
+<meta property="og:url" content="http://yoursite.com/2020/02/10/spring-boot-log/index.html">
+<meta property="og:site_name" content="Deer&#39;s blog">
+<meta property="og:description" content="描述 spring boot 日志配置的使用及其实现">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2020-02-10T12:44:24.824Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【spring】 spring boot 日志配置以及原理">
+<meta name="twitter:description" content="描述 spring boot 日志配置的使用及其实现">
+
+
+
+
+
+  
+  
+  <link rel="canonical" href="http://yoursite.com/2020/02/10/spring-boot-log/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>【spring】 spring boot 日志配置以及原理 | Deer's blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Deer's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/10/spring-boot-log/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Deer">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Deer's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">【spring】 spring boot 日志配置以及原理
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-02-10 19:44:54" itemprop="dateCreated datePublished" datetime="2020-02-10T19:44:54+08:00">2020-02-10</time>
+            
+
+            
+          </span>
+
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>描述 spring boot 日志配置的使用及其实现</p>
+<a id="more"></a>
+<h2 id="切换日志组件"><a href="#切换日志组件" class="headerlink" title="切换日志组件"></a>切换日志组件</h2><p>spring boot 支持 logback 和 log4j2， 默认情况下使用 logback 作为日志组件，可以切换到 log4j2，方法如下</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- 排除 logging，否则 SLF4J 会报找到两个 StaticLoggerBinder</span></span><br><span class="line"><span class="comment">       如果是 web 工程就在 spring-boot-starter-web 下排除 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-logging<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 引入 log4j2 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-log4j2<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>说明：spring-boot-starter-logging 引入 logback 而 spring-boot-starter-log4j2 引入 log4j2。 spring 根据 classpath 里有什么日志组件的类就使用对应的日志组件。</p>
+<h2 id="配置列表"><a href="#配置列表" class="headerlink" title="配置列表"></a>配置列表</h2><p>在 spring-boot.jar!org.springframework.boot.logging 里有与默认配置等价的配置文件，不同的日志组件在对应的子目录下</p>
+<p>配置列表</p>
+<ul>
+<li>logging.config 指定配置文件，之后日志系统都使得用配置文件的设定。示例 logging.config: classpath:logback.xml</li>
+<li>logging.exception-conversion-word 打印异常的代码，默认值 %wEx</li>
+<li>logging.file 日志文件名</li>
+<li>logging.file.max-size 文件最大的大小</li>
+<li>logging.file.max-history 文件最大保留天数</li>
+<li>logging.path 日志文件保存路径</li>
+<li>logging.group 可用来快速修改一组 logger。示例 logging.group.db=org.hibernate,org.springframework.jdbc</li>
+<li>logging.level 修改日志级别。示例 logging.level.org.springframework=DEBUG</li>
+<li>logging.pattern.console 输出到控制台的日志的 pattern</li>
+<li>logging.pattern.dateformat 日期的输出格式</li>
+<li>logging.pattern.file 输出到文件的日志的 pattern</li>
+<li>logging.pattern.level 指示如何在日志中输出日志级别，默认值 %5p</li>
+<li>logging.register-shutdown-hook 指定是否注册一个 shutdown hook</li>
+</ul>
+<h2 id="日志配置初始化过程"><a href="#日志配置初始化过程" class="headerlink" title="日志配置初始化过程"></a>日志配置初始化过程</h2><ol>
+<li><p>LoggingApplicationListener 负责加载和初始化日志。它是一个 ApplicationListener， 通过 spring 事件触发日志的初始化<br>LoggingApplicationListener 的成员 LoggingSystem loggingSystem 是日志系统的抽象</p>
+</li>
+<li><p>在 ApplicationStartingEvent 事件处理中，通过 LoggingSystem.get 得到 LoggingSystem 实例。LoggingSystem.SYSTEMS 静态成员中保存了 LoggingSystem 会找的类，如果找到就会创建对应的 LoggingSystem 子类实例。对应关系如下：<br> logback: 找 ch.qos.logback.core.Appender 类， 找到就创建 LogbackLoggingSystem<br> log4j2：找 org.apache.logging.log4j.core.impl.Log4jContextFactory 类， 找到就创建 Log4J2LoggingSystem<br> 如果都没有就创建 JavaLoggingSystem。 各个 LoggingSystem 的具体实现会用对应的方法设置各个日志配置。</p>
+</li>
+<li><p>在 ApplicationEnvironmentPreparedEvent 事件处理中， 调用 LoggingApplicationListener.initialize 根据配置初始化 LoggingSystem</p>
+</li>
+<li><p>在 ApplicationPreparedEvent 事件处理中将 LoggingSystem 实例注册到 ApplicationContext， Bean 名是 springBootLoggingSystem。如果有 LogFile 实例，也会注册到 ApplicationContext， Bean 名是 springBootLogFile。</p>
+</li>
+<li><p>最后，处理 ContextClosedEvent 事件时调用 LoggingSystem.cleanUp 清理环境</p>
+</li>
+</ol>
+<h2 id="日志配置代码实现"><a href="#日志配置代码实现" class="headerlink" title="日志配置代码实现"></a>日志配置代码实现</h2><p>LoggingApplicationListener.initialize 方法对日志进行配置</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LoggingApplicationListener</span> <span class="keyword">implements</span> <span class="title">GenericApplicationListener</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 处理 ApplicationEnvironmentPreparedEvent 事件</span></span><br><span class="line">  <span class="comment">// 这时 Environment 已经准备好，可以读到用户的配置</span></span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">onApplicationEnvironmentPreparedEvent</span><span class="params">(ApplicationEnvironmentPreparedEvent event)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.loggingSystem == <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="comment">// 获得 LoggingSystem 的具体实现</span></span><br><span class="line">      <span class="keyword">this</span>.loggingSystem = LoggingSystem.get(event.getSpringApplication().getClassLoader());</span><br><span class="line">    &#125;</span><br><span class="line">    initialize(event.getEnvironment(), event.getSpringApplication().getClassLoader());</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 进行初始化</span></span><br><span class="line">  <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">(ConfigurableEnvironment environment, ClassLoader classLoader)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 通过 System.setProperty 设置一些配置</span></span><br><span class="line">    <span class="comment">// 有 exception-conversion-word， PID， pattern.console 等，见 LoggingSystemProperties.apply</span></span><br><span class="line">    <span class="keyword">new</span> LoggingSystemProperties(environment).apply();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 根据 logging.file 和 logging.path 创建 LogFile 对象</span></span><br><span class="line">    <span class="keyword">this</span>.logFile = LogFile.get(environment);</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.logFile != <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">this</span>.logFile.applyToSystemProperties();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置 Early 日志级别，看有没有以 -Ddebug 或 -Dtrace 启动程序</span></span><br><span class="line">    initializeEarlyLoggingLevel(environment);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果有配置 logging.config， 就用这个配置指定的配置文件重新初始化</span></span><br><span class="line">    <span class="comment">// 如果没配置，就尝试找约定的配置文件是否存在，存在就用那个文件做配置</span></span><br><span class="line">    <span class="comment">// 如果都没有，就用默认的配置设定底层的日志组件</span></span><br><span class="line">    initializeSystem(environment, <span class="keyword">this</span>.loggingSystem, <span class="keyword">this</span>.logFile);</span><br><span class="line">  </span><br><span class="line">    <span class="comment">// 设置最终的日志级别</span></span><br><span class="line">    initializeFinalLoggingLevels(environment, <span class="keyword">this</span>.loggingSystem);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 注册 shutdown hook</span></span><br><span class="line">    registerShutdownHookIfNecessary(environment, <span class="keyword">this</span>.loggingSystem);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        
+          
+        
+        <div class="post-tags">
+          
+            <a href="/tags/spring/" rel="tag"># spring</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/02/09/spring-transaction/" rel="next" title="【spring】 spring 事务的应用与实现">
+                <i class="fa fa-chevron-left"></i> 【spring】 spring 事务的应用与实现
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/02/12/spring-boot-actuator/" rel="prev" title="【spring】 spring boot actuator 的使用与实现">
+                【spring】 spring boot actuator 的使用与实现 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Deer</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">63</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">23</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#切换日志组件"><span class="nav-number">1.</span> <span class="nav-text">切换日志组件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置列表"><span class="nav-number">2.</span> <span class="nav-text">配置列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#日志配置初始化过程"><span class="nav-number">3.</span> <span class="nav-text">日志配置初始化过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#日志配置代码实现"><span class="nav-number">4.</span> <span class="nav-text">日志配置代码实现</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Deer</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.1.2</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/utils.js?v=7.1.2"></script>
+
+  <script src="/js/motion.js?v=7.1.2"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/affix.js?v=7.1.2"></script>
+
+  <script src="/js/schemes/pisces.js?v=7.1.2"></script>
+
+
+
+
+  
+  <script src="/js/scrollspy.js?v=7.1.2"></script>
+<script src="/js/post-details.js?v=7.1.2"></script>
+
+
+
+  
+
+
+  <script src="/js/next-boot.js?v=7.1.2"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

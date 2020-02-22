@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next gemini" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=sans-serif:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext">
+  
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+<link rel="stylesheet" href="/css/main.css?v=7.1.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.1.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.1.2" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.1.2',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="分析 spring 如何使用及实现 actuator">
+<meta name="keywords" content="spring">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【spring】 spring boot actuator 的使用与实现">
+<meta property="og:url" content="http://yoursite.com/2020/02/12/spring-boot-actuator/index.html">
+<meta property="og:site_name" content="Deer&#39;s blog">
+<meta property="og:description" content="分析 spring 如何使用及实现 actuator">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2020-02-12T06:29:59.109Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【spring】 spring boot actuator 的使用与实现">
+<meta name="twitter:description" content="分析 spring 如何使用及实现 actuator">
+
+
+
+
+
+  
+  
+  <link rel="canonical" href="http://yoursite.com/2020/02/12/spring-boot-actuator/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>【spring】 spring boot actuator 的使用与实现 | Deer's blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Deer's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/12/spring-boot-actuator/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Deer">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Deer's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">【spring】 spring boot actuator 的使用与实现
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-02-12 19:44:54" itemprop="dateCreated datePublished" datetime="2020-02-12T19:44:54+08:00">2020-02-12</time>
+            
+
+            
+          </span>
+
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>分析 spring 如何使用及实现 actuator</p>
+<a id="more"></a>
+<p>actuator 是 spring boot 提供的对应用监控的功能，可以查看应用的配置以及运行信息。官方文档<a href="https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready" target="_blank" rel="noopener">https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready
+</a>。</p>
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><h2 id="在项目中引入-actuator"><a href="#在项目中引入-actuator" class="headerlink" title="在项目中引入 actuator"></a>在项目中引入 actuator</h2><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-actuator<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>这时可以通过 <a href="http://127.0.0.1:8080/actuator" target="_blank" rel="noopener">http://127.0.0.1:8080/actuator</a> 访问 actuator 打开的 endpoint，默认有 health 和 info</p>
+<h2 id="endpoint-配置"><a href="#endpoint-配置" class="headerlink" title="endpoint 配置"></a>endpoint 配置</h2><ul>
+<li>management.endpoint.shutdown.enabled=true<br>是否要开 shutdown endpoint，打开的话可以通过这个 endpoint 关闭应用</li>
+</ul>
+<p>主要有两大类 endpoint：通过 web 使用的 endpoint 和通过 jmx 使用的 endpoint</p>
+<ul>
+<li><p>web 的配置在 WebEndpointProperties 类定义，主要的配置项有</p>
+<ul>
+<li><p>management.endpoints.web.base-path<br>定义 actuator 的访问路径， 默认是 /actuator</p>
+</li>
+<li><p>management.endpoints.web.exposure.include<br>定义暴露哪些 endpoint，可以用 * 暴露所有的 endpoint</p>
+</li>
+<li><p>management.endpoints.web.exposure.exclude<br>定义哪些 endpoint 不暴露</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>另外有 cors 的配置在 CorsEndpointProperties 类中定义</p>
+<ul>
+<li>jmx 的配置在 JmxEndpointProperties 类定义<ul>
+<li>management.endpoints.jmx.domain</li>
+<li>management.endpoints.jmx.exposure.include</li>
+<li>management.endpoints.jmx.exposure.exclude</li>
+</ul>
+</li>
+</ul>
+<h2 id="各个-endpoint-作用"><a href="#各个-endpoint-作用" class="headerlink" title="各个 endpoint 作用"></a>各个 endpoint 作用</h2><ul>
+<li><p>health<br>检查应用的运行状态，由 HealthEndpoint 类实现。运行状态由 HealthAggregator 实现，它会通过合并几个健康指数（例如 DataSourceHealthIndicator，DiskSpaceHealthIndicator 等）检查应用的健康情况，如果所有健康指数都是正常的话，返回的 status 是 UP，否则就是 DOWN 。 可以通过</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">management.health.diskspace.enable=false</span><br></pre></td></tr></table></figure>
+<p>关闭部分检查（其中 diskspace 就组件名）</p>
+</li>
+<li><p>info<br>获取应用程序的定制信息，这些信息由 info 打头的属性提供。例如在 application.properties 中定义一个 info.app.name，那么访问 info 这个 endpoint 时就显示 info.app.name 的值</p>
+</li>
+<li><p>loggers<br>查看或修改日志级别。<br>/loggers 可以查看所有 logger 的日志级别。/loggers/{name} 可以查看指定 logger 的日志级别，其中 configuredLevel 是配置的级别（可能为 null）， effectiveLevel 是实际生效的级别。通过 POST {“configuredLevel”: {level}} 到 /loggers/{name} 可以修改 logger 的日志级别。</p>
+</li>
+<li><p>beans<br>显示应用中所有的 bean 的定义。</p>
+</li>
+<li><p>conditions<br>显示 spring boot auto-configuration 的所有 condition 是否生效。</p>
+<p>例如下面的返回结果表示 DataSourceAutoConfiguration 的条件匹配</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">DataSourceAutoConfiguration: [</span><br><span class="line">  &#123;</span><br><span class="line">    condition: "OnClassCondition",</span><br><span class="line">    message: "@ConditionalOnClass found required classes 'javax.sql.DataSource',</span><br><span class="line">      'org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType'"</span><br><span class="line">  &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+<p>又例如下面的返回结果表示 RedisAutoConfiguration 的条件不匹配，找不到需要的 org.springframework.data.redis.core.RedisOperations 类</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">RedisAutoConfiguration: &#123;</span><br><span class="line">  notMatched: [</span><br><span class="line">    &#123;</span><br><span class="line">      condition: "OnClassCondition",</span><br><span class="line">      message: "@ConditionalOnClass did not find required class 'org.springframework.data.redis.core.RedisOperations'"</span><br><span class="line">    &#125;</span><br><span class="line">  ],</span><br><span class="line">  matched: [ ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>mappings<br>描述应用的所有 URI</p>
+</li>
+<li><p>heapdump<br>返回一个 heapdump</p>
+</li>
+<li><p>threaddump<br>生成当前线程活动的快照</p>
+</li>
+<li><p>caches<br>显示缓存信息</p>
+</li>
+<li><p>configprops<br>描述配置属性(包含默认值)如何注入Bean</p>
+</li>
+<li><p>env<br>获取全部环境属性</p>
+</li>
+<li><p>httptrace<br>显示最近100个HTTP request/repsponse</p>
+</li>
+<li><p>metrics<br>报告各种应用程序度量信息。metrics 这个 endpoint 显示了所有支持的 name，然后可以通过 /metrics/{name} 查看某一项的具体信息</p>
+</li>
+<li><p>auditevents<br>显示应用暴露的审计事件</p>
+</li>
+</ul>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><h3 id="endpoint-定义"><a href="#endpoint-定义" class="headerlink" title="endpoint 定义"></a>endpoint 定义</h3><p>要创建一个 endpoint 有两步，一是定义一个 endpoint bend，二是建立 endpoing 的访问路径。</p>
+<ol>
+<li><p>endpoint 就是有 @Endpoint 注解的 spring bean（endpoint 首先是 spring 容器管理的 bean），<br>例如 BeansEndpoint。 spring boot 自带的 endpoint 都有对应的 AutoConfiguration 用来判断是否加载这个 endpoint。例如 BeansEndpoint 对应的就是 BeansEndpointAutoConfiguration， BeansEndpointAutoConfiguration 带有条件 @ConditionalOnEnabledEndpoint(endpoint = BeansEndpoint.class)， 这个条件通过 OnEnabledEndpointCondition 计算结果， 表示如果有 management.endpoint.{endpoint id}.enabled=true 就个属性，条件就成立。</p>
+</li>
+<li><p>建立 endpoint 与建立 URI 的映射关系<br>在引入的 spring-boot-actuator-autoconfigure 这个 jar 中包含有 WebEndpointAutoConfiguration，WebEndpointAutoConfiguration 定义了 bean WebEndpointDiscoverer。 WebEndpointDiscoverer 通过扫描 applicationContext 得到其中有 @Endpoint 注解的 bean。同时，spring-boot-actuator-autoconfigure 中包含有 WebMvcEndpointManagementContextConfiguration（依赖 DispatcherServlet 和 WebEndpointsSupplier， WebEndpointsSupplier 即 WebEndpointDiscoverer）。</p>
+<p>WebMvcEndpointManagementContextConfiguration 定义了 WebMvcEndpointHandlerMapping（HandlerMapping 的子类， 见 DispatcherServlet 的 getHandler 方法），而 WebMvcEndpointHandlerMapping 在 afterPropertiesSet 方法中将前面用 WebEndpointDiscoverer 加载出来的 endpoint 中的 operation 注册。</p>
+</li>
+</ol>
+<p>要自定义一个 endpoint，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@Endpoint</span>(id=<span class="string">"hello"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloEndpoint</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ReadOperation</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">hello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"hello world"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>之后可以通过 <a href="http://127.0.0.1:8080/actuator/hello" target="_blank" rel="noopener">http://127.0.0.1:8080/actuator/hello</a> 访问这个 endpoint</p>
+<h3 id="health-定义"><a href="#health-定义" class="headerlink" title="health 定义"></a>health 定义</h3><p>health 这个 endpoint 用于检查应用的运行状态， 它的结果由多个 HealthIndicator 组合而成。 HealthIndicatorAutoConfiguration 定义了 HealthIndicatorRegistry，HealthIndicatorRegistry 从 applicationContext 找出所有实现了 HealthIndicator 接口和 ReactiveHealthIndicator （如果有用 Flex 的话） 的 bean 加入到 DefaultHealthIndicatorRegistry 的 healthIndicators 成员。</p>
+<p>HealthEndpoint 被访问时， 会从遍历 healthIndicators 每个成员来计算状态。</p>
+<p>示例</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloHealthIndicator</span> <span class="keyword">implements</span> <span class="title">HealthIndicator</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Health <span class="title">health</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Health.up().build();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以通过 management.endpoint.health.show-details 设置能不能用 <a href="http://127.0.0.1:10080/actuator/health/{component}" target="_blank" rel="noopener">http://127.0.0.1:10080/actuator/health/{component}</a> 访问组件的运行状态</p>
+<h3 id="metrics-定义"><a href="#metrics-定义" class="headerlink" title="metrics 定义"></a>metrics 定义</h3><p>metrics 这个 endpoint 实际上是用 micrometer 实现（micrometer 类似 SLF4J， 是一个应用运行指标的门面）。 micrometer 自身就实现了很多内置的指标，由 org.springframework.boot.actuate.autoconfigure.metrics 包下的 @Configuration 类引入到 spring 容器，并注册到 MeterRegistry。</p>
+<p>MetricsEndpoint 类实现了 metrics 这个 endpoint 的访问， endpoint 从 MeterRegistry 中找到对应的指标，并返回。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        
+          
+        
+        <div class="post-tags">
+          
+            <a href="/tags/spring/" rel="tag"># spring</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/02/10/spring-boot-log/" rel="next" title="【spring】 spring boot 日志配置以及原理">
+                <i class="fa fa-chevron-left"></i> 【spring】 spring boot 日志配置以及原理
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/02/13/http-headers/" rel="prev" title="【http】 http 头介绍">
+                【http】 http 头介绍 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Deer</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">63</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">23</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用"><span class="nav-number">1.</span> <span class="nav-text">使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#在项目中引入-actuator"><span class="nav-number">2.</span> <span class="nav-text">在项目中引入 actuator</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#endpoint-配置"><span class="nav-number">3.</span> <span class="nav-text">endpoint 配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#各个-endpoint-作用"><span class="nav-number">4.</span> <span class="nav-text">各个 endpoint 作用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实现"><span class="nav-number">5.</span> <span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#endpoint-定义"><span class="nav-number">5.1.</span> <span class="nav-text">endpoint 定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#health-定义"><span class="nav-number">5.2.</span> <span class="nav-text">health 定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#metrics-定义"><span class="nav-number">5.3.</span> <span class="nav-text">metrics 定义</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Deer</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.1.2</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/utils.js?v=7.1.2"></script>
+
+  <script src="/js/motion.js?v=7.1.2"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/affix.js?v=7.1.2"></script>
+
+  <script src="/js/schemes/pisces.js?v=7.1.2"></script>
+
+
+
+
+  
+  <script src="/js/scrollspy.js?v=7.1.2"></script>
+<script src="/js/post-details.js?v=7.1.2"></script>
+
+
+
+  
+
+
+  <script src="/js/next-boot.js?v=7.1.2"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
